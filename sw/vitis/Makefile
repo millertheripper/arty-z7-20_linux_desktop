@@ -22,8 +22,6 @@ clean:
 ws:
 	mkdir ws build
 	cp -r $(XSA_DIR) ws
-	#cd ws && $(VIVADO) && $(XSCT) ./../scripts/create_bsp.tcl $(HW_PLATFORM_NAME) $(SRC_DIR)
-	#find . -name ddynclk_g.c -exec sed -i 's/XPAR_DDYNCLK_NUM_INSTANCES/ /gI' {} \;
 	cd ws && $(VIVADO) && $(XSCT) ./../scripts/create_ws.tcl $(HW_PLATFORM_NAME) $(SRC_DIR)
 
 .PHONY: bootimg
