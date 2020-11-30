@@ -1,6 +1,6 @@
 
 ################################################################
-# This is a generated script based on design: hdmi_in
+# This is a generated script based on design: design_1
 #
 # Though there are limitations about the generated script,
 # the main purpose of this utility is to make learning
@@ -35,7 +35,7 @@ if { [string first $scripts_vivado_version $current_vivado_version] == -1 } {
 ################################################################
 
 # To test this script, run the following commands from Vivado Tcl console:
-# source hdmi_in_script.tcl
+# source design_1_script.tcl
 
 # If there is no project opened, this script will create a
 # project, but make sure you do not have an existing project
@@ -44,7 +44,6 @@ if { [string first $scripts_vivado_version $current_vivado_version] == -1 } {
 set list_projs [get_projects -quiet]
 if { $list_projs eq "" } {
    create_project project_1 myproj -part xc7z020clg400-1
-   set_property BOARD_PART digilentinc.com:arty-z7-20:part0:1.0 [current_project]
 }
 
 
@@ -129,6 +128,7 @@ digilentinc.com:ip:axi_dynclk:1.1\
 xilinx.com:ip:axi_gpio:2.0\
 xilinx.com:ip:axi_vdma:6.3\
 digilentinc.com:ip:dvi2rgb:2.0\
+xilinx.com:hls:hls_sobel_axi_stream_top:1.0\
 xilinx.com:ip:proc_sys_reset:5.0\
 xilinx.com:ip:processing_system7:5.5\
 digilentinc.com:ip:rgb2dvi:1.4\
@@ -272,6 +272,9 @@ proc create_root_design { parentCell } {
    CONFIG.kEnableSerialClkOutput {false} \
    CONFIG.kRstActiveHigh {false} \
  ] $dvi2rgb_0
+
+  # Create instance: hls_sobel_axi_stream_0, and set properties
+  set hls_sobel_axi_stream_0 [ create_bd_cell -type ip -vlnv xilinx.com:hls:hls_sobel_axi_stream_top:1.0 hls_sobel_axi_stream_0 ]
 
   # Create instance: proc_sys_reset_0, and set properties
   set proc_sys_reset_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 proc_sys_reset_0 ]
@@ -1153,7 +1156,7 @@ proc create_root_design { parentCell } {
   # Create instance: ps7_0_axi_periph, and set properties
   set ps7_0_axi_periph [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_interconnect:2.1 ps7_0_axi_periph ]
   set_property -dict [ list \
-   CONFIG.NUM_MI {5} \
+   CONFIG.NUM_MI {6} \
    CONFIG.SYNCHRONIZATION_STAGES {2} \
  ] $ps7_0_axi_periph
 
@@ -1245,6 +1248,7 @@ proc create_root_design { parentCell } {
   connect_bd_intf_net -intf_net axi_vdma_0_M_AXI_S2MM [get_bd_intf_pins axi_mem_intercon/S00_AXI] [get_bd_intf_pins axi_vdma_0/M_AXI_S2MM]
   connect_bd_intf_net -intf_net dvi2rgb_0_DDC [get_bd_intf_ports DDC] [get_bd_intf_pins dvi2rgb_0/DDC]
   connect_bd_intf_net -intf_net dvi2rgb_0_RGB [get_bd_intf_pins dvi2rgb_0/RGB] [get_bd_intf_pins v_vid_in_axi4s_0/vid_io_in]
+  connect_bd_intf_net -intf_net hls_sobel_axi_stream_0_p_dst [get_bd_intf_pins axi_vdma_0/S_AXIS_S2MM] [get_bd_intf_pins hls_sobel_axi_stream_0/p_dst]
   connect_bd_intf_net -intf_net processing_system7_0_DDR [get_bd_intf_ports DDR] [get_bd_intf_pins processing_system7_0/DDR]
   connect_bd_intf_net -intf_net processing_system7_0_FIXED_IO [get_bd_intf_ports FIXED_IO] [get_bd_intf_pins processing_system7_0/FIXED_IO]
   connect_bd_intf_net -intf_net processing_system7_0_M_AXI_GP0 [get_bd_intf_pins processing_system7_0/M_AXI_GP0] [get_bd_intf_pins ps7_0_axi_periph/S00_AXI]
@@ -1253,10 +1257,11 @@ proc create_root_design { parentCell } {
   connect_bd_intf_net -intf_net ps7_0_axi_periph_M02_AXI [get_bd_intf_pins axi_vdma_0/S_AXI_LITE] [get_bd_intf_pins ps7_0_axi_periph/M02_AXI]
   connect_bd_intf_net -intf_net ps7_0_axi_periph_M03_AXI [get_bd_intf_pins ps7_0_axi_periph/M03_AXI] [get_bd_intf_pins v_tc_0/ctrl]
   connect_bd_intf_net -intf_net ps7_0_axi_periph_M04_AXI [get_bd_intf_pins ps7_0_axi_periph/M04_AXI] [get_bd_intf_pins v_tc_1/ctrl]
+  connect_bd_intf_net -intf_net ps7_0_axi_periph_M05_AXI [get_bd_intf_pins hls_sobel_axi_stream_0/s_axi_control] [get_bd_intf_pins ps7_0_axi_periph/M05_AXI]
   connect_bd_intf_net -intf_net rgb2dvi_0_TMDS [get_bd_intf_ports TMDS_1] [get_bd_intf_pins rgb2dvi_0/TMDS]
   connect_bd_intf_net -intf_net v_axi4s_vid_out_0_vid_io_out [get_bd_intf_pins rgb2dvi_0/RGB] [get_bd_intf_pins v_axi4s_vid_out_0/vid_io_out]
   connect_bd_intf_net -intf_net v_tc_0_vtiming_out [get_bd_intf_pins v_axi4s_vid_out_0/vtiming_in] [get_bd_intf_pins v_tc_0/vtiming_out]
-  connect_bd_intf_net -intf_net v_vid_in_axi4s_0_video_out [get_bd_intf_pins axi_vdma_0/S_AXIS_S2MM] [get_bd_intf_pins v_vid_in_axi4s_0/video_out]
+  connect_bd_intf_net -intf_net v_vid_in_axi4s_0_video_out [get_bd_intf_pins hls_sobel_axi_stream_0/p_src] [get_bd_intf_pins v_vid_in_axi4s_0/video_out]
   connect_bd_intf_net -intf_net v_vid_in_axi4s_0_vtiming_out [get_bd_intf_pins v_tc_1/vtiming_in] [get_bd_intf_pins v_vid_in_axi4s_0/vtiming_out]
 
   # Create port connections
@@ -1271,13 +1276,13 @@ proc create_root_design { parentCell } {
   connect_bd_net -net proc_sys_reset_0_peripheral_aresetn [get_bd_pins proc_sys_reset_0/peripheral_aresetn] [get_bd_pins v_tc_1/resetn]
   connect_bd_net -net proc_sys_reset_0_peripheral_reset [get_bd_pins proc_sys_reset_0/peripheral_reset] [get_bd_pins v_vid_in_axi4s_0/vid_io_in_reset]
   connect_bd_net -net processing_system7_0_FCLK_CLK0 [get_bd_pins axi_dynclk_0/REF_CLK_I] [get_bd_pins axi_dynclk_0/s_axi_lite_aclk] [get_bd_pins axi_gpio_video/s_axi_aclk] [get_bd_pins axi_vdma_0/s_axi_lite_aclk] [get_bd_pins processing_system7_0/FCLK_CLK0] [get_bd_pins processing_system7_0/M_AXI_GP0_ACLK] [get_bd_pins ps7_0_axi_periph/ACLK] [get_bd_pins ps7_0_axi_periph/M00_ACLK] [get_bd_pins ps7_0_axi_periph/M01_ACLK] [get_bd_pins ps7_0_axi_periph/M02_ACLK] [get_bd_pins ps7_0_axi_periph/M03_ACLK] [get_bd_pins ps7_0_axi_periph/M04_ACLK] [get_bd_pins ps7_0_axi_periph/S00_ACLK] [get_bd_pins rst_processing_system7_0_100M/slowest_sync_clk] [get_bd_pins v_tc_0/s_axi_aclk] [get_bd_pins v_tc_1/s_axi_aclk]
-  connect_bd_net -net processing_system7_0_FCLK_CLK1 [get_bd_pins axi_mem_intercon/ACLK] [get_bd_pins axi_mem_intercon/M00_ACLK] [get_bd_pins axi_mem_intercon/S00_ACLK] [get_bd_pins axi_mem_intercon/S01_ACLK] [get_bd_pins axi_vdma_0/m_axi_mm2s_aclk] [get_bd_pins axi_vdma_0/m_axi_s2mm_aclk] [get_bd_pins axi_vdma_0/m_axis_mm2s_aclk] [get_bd_pins axi_vdma_0/s_axis_s2mm_aclk] [get_bd_pins processing_system7_0/FCLK_CLK1] [get_bd_pins processing_system7_0/S_AXI_HP0_ACLK] [get_bd_pins rst_processing_system7_0_150M/slowest_sync_clk] [get_bd_pins v_axi4s_vid_out_0/aclk] [get_bd_pins v_vid_in_axi4s_0/aclk]
+  connect_bd_net -net processing_system7_0_FCLK_CLK1 [get_bd_pins axi_mem_intercon/ACLK] [get_bd_pins axi_mem_intercon/M00_ACLK] [get_bd_pins axi_mem_intercon/S00_ACLK] [get_bd_pins axi_mem_intercon/S01_ACLK] [get_bd_pins axi_vdma_0/m_axi_mm2s_aclk] [get_bd_pins axi_vdma_0/m_axi_s2mm_aclk] [get_bd_pins axi_vdma_0/m_axis_mm2s_aclk] [get_bd_pins axi_vdma_0/s_axis_s2mm_aclk] [get_bd_pins hls_sobel_axi_stream_0/ap_clk] [get_bd_pins processing_system7_0/FCLK_CLK1] [get_bd_pins processing_system7_0/S_AXI_HP0_ACLK] [get_bd_pins ps7_0_axi_periph/M05_ACLK] [get_bd_pins rst_processing_system7_0_150M/slowest_sync_clk] [get_bd_pins v_axi4s_vid_out_0/aclk] [get_bd_pins v_vid_in_axi4s_0/aclk]
   connect_bd_net -net processing_system7_0_FCLK_CLK2 [get_bd_pins dvi2rgb_0/RefClk] [get_bd_pins processing_system7_0/FCLK_CLK2]
   connect_bd_net -net processing_system7_0_FCLK_RESET0_N [get_bd_pins proc_sys_reset_0/ext_reset_in] [get_bd_pins processing_system7_0/FCLK_RESET0_N] [get_bd_pins rst_processing_system7_0_100M/ext_reset_in] [get_bd_pins rst_processing_system7_0_150M/ext_reset_in]
   connect_bd_net -net rst_processing_system7_0_100M_interconnect_aresetn [get_bd_pins ps7_0_axi_periph/ARESETN] [get_bd_pins rst_processing_system7_0_100M/interconnect_aresetn]
   connect_bd_net -net rst_processing_system7_0_100M_peripheral_aresetn [get_bd_pins axi_dynclk_0/s_axi_lite_aresetn] [get_bd_pins axi_gpio_video/s_axi_aresetn] [get_bd_pins axi_vdma_0/axi_resetn] [get_bd_pins dvi2rgb_0/aRst_n] [get_bd_pins ps7_0_axi_periph/M00_ARESETN] [get_bd_pins ps7_0_axi_periph/M01_ARESETN] [get_bd_pins ps7_0_axi_periph/M02_ARESETN] [get_bd_pins ps7_0_axi_periph/M03_ARESETN] [get_bd_pins ps7_0_axi_periph/M04_ARESETN] [get_bd_pins ps7_0_axi_periph/S00_ARESETN] [get_bd_pins rst_processing_system7_0_100M/peripheral_aresetn] [get_bd_pins v_tc_0/s_axi_aresetn] [get_bd_pins v_tc_1/s_axi_aresetn]
   connect_bd_net -net rst_processing_system7_0_150M_interconnect_aresetn [get_bd_pins axi_mem_intercon/ARESETN] [get_bd_pins rst_processing_system7_0_150M/interconnect_aresetn]
-  connect_bd_net -net rst_processing_system7_0_150M_peripheral_aresetn [get_bd_pins axi_mem_intercon/M00_ARESETN] [get_bd_pins axi_mem_intercon/S00_ARESETN] [get_bd_pins axi_mem_intercon/S01_ARESETN] [get_bd_pins rst_processing_system7_0_150M/peripheral_aresetn]
+  connect_bd_net -net rst_processing_system7_0_150M_peripheral_aresetn [get_bd_pins axi_mem_intercon/M00_ARESETN] [get_bd_pins axi_mem_intercon/S00_ARESETN] [get_bd_pins axi_mem_intercon/S01_ARESETN] [get_bd_pins hls_sobel_axi_stream_0/ap_rst_n] [get_bd_pins ps7_0_axi_periph/M05_ARESETN] [get_bd_pins rst_processing_system7_0_150M/peripheral_aresetn]
   connect_bd_net -net v_tc_0_irq [get_bd_pins v_tc_0/irq] [get_bd_pins xlconcat_0/In2]
   connect_bd_net -net v_tc_1_irq [get_bd_pins v_tc_1/irq] [get_bd_pins xlconcat_0/In3]
   connect_bd_net -net xlconcat_0_dout [get_bd_pins processing_system7_0/IRQ_F2P] [get_bd_pins xlconcat_0/dout]
@@ -1289,9 +1294,91 @@ proc create_root_design { parentCell } {
   assign_bd_address -offset 0x43C00000 -range 0x00010000 -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs axi_dynclk_0/S_AXI_LITE/S_AXI_LITE_reg] -force
   assign_bd_address -offset 0x41200000 -range 0x00010000 -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs axi_gpio_video/S_AXI/Reg] -force
   assign_bd_address -offset 0x43000000 -range 0x00010000 -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs axi_vdma_0/S_AXI_LITE/Reg] -force
+  assign_bd_address -offset 0x40000000 -range 0x00010000 -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs hls_sobel_axi_stream_0/s_axi_control/Reg] -force
   assign_bd_address -offset 0x43C10000 -range 0x00010000 -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs v_tc_0/ctrl/Reg] -force
   assign_bd_address -offset 0x43C20000 -range 0x00010000 -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs v_tc_1/ctrl/Reg] -force
 
+  # Perform GUI Layout
+  regenerate_bd_layout -layout_string {
+   "ActiveEmotionalView":"Default View",
+   "Default View_ScaleFactor":"0.743045",
+   "Default View_TopLeft":"-260,315",
+   "ExpandedHierarchyInLayout":"",
+   "guistr":"# # String gsaved with Nlview 7.0r4  2019-12-20 bk=1.5203 VDI=41 GEI=36 GUI=JA:9.0 TLS
+#  -string -flagsOSRD
+preplace port DDC -pg 1 -lvl 9 -x 3180 -y 1340 -defaultsOSRD
+preplace port DDR -pg 1 -lvl 9 -x 3180 -y 740 -defaultsOSRD
+preplace port FIXED_IO -pg 1 -lvl 9 -x 3180 -y 760 -defaultsOSRD
+preplace port TMDS -pg 1 -lvl 0 -x -170 -y 1330 -defaultsOSRD
+preplace port TMDS_1 -pg 1 -lvl 9 -x 3180 -y 340 -defaultsOSRD
+preplace port hdmi_hpd -pg 1 -lvl 9 -x 3180 -y 1090 -defaultsOSRD
+preplace inst VCC -pg 1 -lvl 5 -x 1650 -y 50 -defaultsOSRD
+preplace inst axi_dynclk_0 -pg 1 -lvl 5 -x 1650 -y 180 -defaultsOSRD
+preplace inst axi_gpio_video -pg 1 -lvl 8 -x 2880 -y 1120 -defaultsOSRD
+preplace inst axi_mem_intercon -pg 1 -lvl 7 -x 2450 -y 640 -defaultsOSRD
+preplace inst axi_vdma_0 -pg 1 -lvl 5 -x 1650 -y 660 -defaultsOSRD
+preplace inst dvi2rgb_0 -pg 1 -lvl 2 -x 450 -y 1440 -defaultsOSRD
+preplace inst proc_sys_reset_0 -pg 1 -lvl 2 -x 450 -y 1660 -defaultsOSRD
+preplace inst processing_system7_0 -pg 1 -lvl 8 -x 2880 -y 840 -defaultsOSRD
+preplace inst ps7_0_axi_periph -pg 1 -lvl 3 -x 850 -y 820 -defaultsOSRD
+preplace inst rgb2dvi_0 -pg 1 -lvl 8 -x 2880 -y 340 -defaultsOSRD
+preplace inst rst_processing_system7_0_100M -pg 1 -lvl 1 -x 40 -y 1140 -defaultsOSRD
+preplace inst rst_processing_system7_0_150M -pg 1 -lvl 5 -x 1650 -y 900 -defaultsOSRD
+preplace inst v_axi4s_vid_out_0 -pg 1 -lvl 7 -x 2450 -y 370 -defaultsOSRD
+preplace inst v_tc_0 -pg 1 -lvl 5 -x 1650 -y 410 -defaultsOSRD
+preplace inst v_tc_1 -pg 1 -lvl 5 -x 1650 -y 1170 -defaultsOSRD
+preplace inst v_vid_in_axi4s_0 -pg 1 -lvl 3 -x 850 -y 1190 -defaultsOSRD
+preplace inst xlconcat_0 -pg 1 -lvl 7 -x 2450 -y 900 -defaultsOSRD
+preplace inst hls_sobel_axi_stream_0 -pg 1 -lvl 4 -x 1230 -y 1050 -defaultsOSRD
+preplace netloc axi_dynclk_0_LOCKED_O 1 5 3 NJ 200 2130 220 2660
+preplace netloc axi_dynclk_0_PXL_CLK_5X_O 1 5 3 NJ 180 2150 210 2650
+preplace netloc axi_dynclk_0_PXL_CLK_O 1 4 4 1460 270 1840 230 2160 230 2640
+preplace netloc axi_gpio_video_ip2intc_irpt 1 6 3 2130 1000 NJ 1000 3110
+preplace netloc axi_vdma_0_mm2s_introut 1 5 2 N 700 2110
+preplace netloc axi_vdma_0_s2mm_introut 1 5 2 N 720 2100
+preplace netloc dvi2rgb_0_PixelClk 1 1 4 260 1330 640 1050 1030J 1140 1450
+preplace netloc dvi2rgb_0_pLocked 1 1 8 270 1340 630 1430 NJ 1430 N 1430 NJ 1430 N 1430 NJ 1430 3100
+preplace netloc proc_sys_reset_0_peripheral_aresetn 1 2 3 660 1060 1020J 1170 1390
+preplace netloc proc_sys_reset_0_peripheral_reset 1 2 1 670 1180n
+preplace netloc processing_system7_0_FCLK_CLK0 1 0 9 -150 1020 NJ 1020 630 570 N 570 1440 1010 NJ 1010 N 1010 2650 680 3110
+preplace netloc processing_system7_0_FCLK_CLK1 1 2 7 680 590 1040 650 1460 790 N 790 2130 790 2640 660 3140
+preplace netloc processing_system7_0_FCLK_CLK2 1 1 8 250 1040 NJ 1040 1050J 1150 1430 1020 NJ 1020 N 1020 NJ 1020 3120
+preplace netloc processing_system7_0_FCLK_RESET0_N 1 0 9 -140 1040 220 560 NJ 560 N 560 1450 800 NJ 800 N 800 2620J 670 3130
+preplace netloc rst_processing_system7_0_100M_interconnect_aresetn 1 1 2 230J 1010 640
+preplace netloc rst_processing_system7_0_100M_peripheral_aresetn 1 1 7 240 1030 650 580 N 580 1420 1030 NJ 1030 2130 1140 NJ
+preplace netloc rst_processing_system7_0_150M_interconnect_aresetn 1 5 2 1870 610 N
+preplace netloc rst_processing_system7_0_150M_peripheral_aresetn 1 2 5 700 600 1060 960 1400 1000 1880 730 2150
+preplace netloc v_tc_0_irq 1 5 2 N 410 2120
+preplace netloc v_tc_1_irq 1 5 2 1890 920 N
+preplace netloc xlconcat_0_dout 1 7 1 2660 880n
+preplace netloc xlconstant_0_dout 1 5 2 N 50 2140
+preplace netloc processing_system7_0_FIXED_IO 1 8 1 NJ 760
+preplace netloc processing_system7_0_M_AXI_GP0 1 2 7 690 -20 NJ -20 N -20 NJ -20 N -20 NJ -20 3120
+preplace netloc ps7_0_axi_periph_M00_AXI 1 3 2 1010 150 N
+preplace netloc ps7_0_axi_periph_M01_AXI 1 3 5 1000 -10 N -10 NJ -10 2160 200 2630J
+preplace netloc ps7_0_axi_periph_M02_AXI 1 3 2 1050 590 N
+preplace netloc v_axi4s_vid_out_0_vid_io_out 1 7 1 N 310
+preplace netloc v_tc_0_vtiming_out 1 5 2 1840 310 N
+preplace netloc v_vid_in_axi4s_0_vtiming_out 1 3 2 1000 1160 1460
+preplace netloc ps7_0_axi_periph_M03_AXI 1 3 2 1020 330 N
+preplace netloc ps7_0_axi_periph_M04_AXI 1 3 2 N 850 1410
+preplace netloc rgb2dvi_0_TMDS 1 8 1 NJ 340
+preplace netloc TMDS_2 1 0 2 NJ 1330 230J
+preplace netloc axi_gpio_0_GPIO2 1 8 1 NJ 1090
+preplace netloc axi_mem_intercon_M00_AXI 1 7 1 2610 640n
+preplace netloc axi_vdma_0_M_AXI_MM2S 1 5 2 1870 570 N
+preplace netloc axi_vdma_0_M_AXI_S2MM 1 5 2 1860 550 N
+preplace netloc dvi2rgb_0_DDC 1 2 7 NJ 1420 NJ 1420 N 1420 NJ 1420 2130 1340 NJ 1340 NJ
+preplace netloc dvi2rgb_0_RGB 1 2 1 650 1120n
+preplace netloc processing_system7_0_DDR 1 8 1 NJ 740
+preplace netloc axi_vdma_0_M_AXIS_MM2S 1 5 2 1850 290 N
+preplace netloc v_vid_in_axi4s_0_video_out 1 3 1 1070 1040n
+preplace netloc hls_sobel_axi_stream_0_p_dst 1 4 1 1390 610n
+preplace netloc ps7_0_axi_periph_M05_AXI 1 3 1 1070 870n
+levelinfo -pg 1 -170 40 450 850 1230 1650 2080 2450 2880 3180
+pagesize -pg 1 -db -bbox -sgen -260 -30 3300 2040
+"
+}
 
   # Restore current instance
   current_bd_instance $oldCurInst

@@ -1,12 +1,10 @@
-# Arty-Z7-20 HDMI IN/OUT demo
+# Arty-Z7-20 HDMI HLS Sobel Filter 
 
-## Derived from 
+## Base HDMI Project derived from 
 https://github.com/Digilent/Arty-Z7-20-hdmi-in/tree/v2020.1
 
-This project demonstrates how to use the USB-UART Bridge, HDMI Sink and HDMI Source with the ZYNQ processor. Vivado is used to build the demo's hardware platform, and Xilinx SDK is used to program the bitstream onto the board and to build and deploy a C application. Video data streams in through the HDMI in port and out through the HDMI out port. A UART interface is available to configure what is output through HDMI.
-There are 3 display frame buffers that the user can choose to display or write to. The configuring options are shown in the table below.
-
-The demo uses the usb-uart bridge to configure the HDMI Display , the Arty Z7-20 must be connected to a computer over MicroUSB, which must be running a serial terminal. For more information on how to set up and use a serial terminal, such as Tera Term or PuTTY, refer to [this tutorial](https://reference.digilentinc.com/learn/programmable-logic/tutorials/tera-term).
+This project demonstrates how to use HLS (High Level Synthesis) language to create image filters (Sobel-Filter, Edge Detection). The HLS logic is exported as 
+IP core and inserted into the video block design AXI stream.
 
 | Option    | Function                                                                                                                 |
 | --------- | ------------------------------------------------------------------------------------------------------------------------ |
@@ -23,6 +21,8 @@ The demo uses the usb-uart bridge to configure the HDMI Display , the Arty Z7-20
 ------------
 * **Arty Z7-20**
 * **Vivado and Vitis 2020.1 Installations**
+* **Vitis Video Library** 
+* **Open CV 3.3.0 installation**
 * **Serial Terminal Emulator Application**
 * **MicroUSB Cable**
 * **2 HDMI Cables**
