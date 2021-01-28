@@ -1,12 +1,13 @@
 include Makefile.inc
 
-HLS_PRJ_DIR := $(shell pwd)/hw/source/ip_cores/hls_sobel_filter
+HLS_PRJ_DIR := $(shell pwd)/hw/source/ip_cores/hls_sobel_axi_stream
 
 .PHONY: all
 all: hls fpga vitis
 
 .PHONY: hls
 hls:
+	git submodule update --init --recursive --remote
 	$(MAKE) -C $(HLS_PRJ_DIR)
 
 .PHONY: vitis
