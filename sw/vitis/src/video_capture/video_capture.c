@@ -209,6 +209,15 @@ int VideoStart(VideoCapture *videoPtr)
 		return XST_FAILURE;
 	}
 
+	/* Initialize HLS sobel filter with video parameters and start operation */
+	xdbg_printf(XDBG_DEBUG_GENERAL, "Configure HLS IP (%u x %u)\n\r", videoPtr->timing.HActiveVideo, videoPtr->timing.VActiveVideo);
+	XHls_sobel_axi_stream_top_Initialize(&videoPtr->xhls_sobel_axi_stream_inst, XPAR_XHLS_SOBEL_AXI_STREAM_TOP_0_DEVICE_ID);
+	XHls_sobel_axi_stream_top_Set_rows(&videoPtr->xhls_sobel_axi_stream_inst, videoPtr->timing.VActiveVideo);
+	XHls_sobel_axi_stream_top_Set_cols(&videoPtr->xhls_sobel_axi_stream_inst, videoPtr->timing.HActiveVideo);
+	//XHls_sobel_axi_stream_top_Set_passthrough(&videoPtr->xhls_sobel_axi_stream_inst, 1);
+	XHls_sobel_axi_stream_top_EnableAutoRestart(&videoPtr->xhls_sobel_axi_stream_inst);
+	XHls_sobel_axi_stream_top_Start(&videoPtr->xhls_sobel_axi_stream_inst);
+
 	videoPtr->state = VIDEO_STREAMING;
 
 	return XST_SUCCESS;

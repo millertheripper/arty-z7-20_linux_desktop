@@ -44,11 +44,11 @@
 * The configuration table for devices
 */
 
-DDynClk_Config DDynClk_ConfigTable[] =
+DDynClk_Config DDynClk_ConfigTable[XPAR_DDYNCLK_NUM_INSTANCES] =
 {
 	{
-		XPAR_AXI_DYNCLK_0_DEVICE_ID,
-		XPAR_AXI_DYNCLK_0_S_AXI_LITE_BASEADDR
+		XPAR_DYNCLK_0_DEVICE_ID,
+		XPAR_DYNCLK_0_S_AXI_LITE_BASEADDR
 	}
 };
 

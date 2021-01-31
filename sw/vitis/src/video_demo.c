@@ -79,6 +79,13 @@ const ivt_t ivt[] = {
 	videoVtcIvt(VID_VTC_IRPT_ID, &(videoCapt.vtc))
 };
 
+/* Vitis HLS sobel filter (AXI Stream)
+ *
+ */
+int hls_sobel_passthough = 1;
+
+
+
 /* ------------------------------------------------------------ */
 /*				Procedure Definitions							*/
 /* ------------------------------------------------------------ */
@@ -98,6 +105,9 @@ void DemoInitialize()
 	int Status;
 	XAxiVdma_Config *vdmaConfig;
 	int i;
+
+	/* Initialize xhls sobel filter */
+	//XHls_sobel_axi_stream_top_Initialize(&videoCapt.xhls_sobel_axi_stream_inst, XPAR_XHLS_SOBEL_AXI_STREAM_TOP_0_DEVICE_ID);
 
 	/*
 	 * Initialize an array of pointers to the 3 frame buffers

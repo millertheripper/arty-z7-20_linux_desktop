@@ -76,6 +76,7 @@
 #include "xvtc.h"
 #include "xgpio.h"
 #include "../intc/intc.h"
+#include "xhls_sobel_axi_stream_top.h"
 
 /* ------------------------------------------------------------ */
 /*					Miscellaneous Declarations					*/
@@ -142,6 +143,7 @@ typedef struct {
 		u16 vtcIrptId; /* Interrupt ID for the VTC core */
 		u32 startOnDetect; /* boolean Flag indicating whether or not the VDMA should be started in the interrupt when a signal is detected */
 		VideoState state; /* Indicates if the Display is currently running */
+		XHls_sobel_axi_stream_top xhls_sobel_axi_stream_inst; /* Instance of xHLS IP core */
 } VideoCapture;
 
 /* ------------------------------------------------------------ */

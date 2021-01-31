@@ -32,5 +32,5 @@ bootimg:
 	@cp $(TMP_IMG_DIR)/BOOT.bin $(TMP_IMG_DIR)/sw.bif ./build
 	@rm -rf ws/tmp
 	@echo ""
-	@echo "INFO: Bootimage was copied to $(shell pwd)/build"
+	@echo "INFO: Bootimage was copied to $(shell pwd)/build/BOOT.bin"
 	
