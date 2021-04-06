@@ -29,6 +29,7 @@
 #include "timer_ps.h"
 #include "xscutimer.h"
 #include "xil_types.h"
+#include <stdio.h>
 
 /* ------------------------------------------------------------ */
 /*				Global Variables								*/
@@ -114,6 +115,27 @@ void TimerDelay(u32 uSDelay)
 	{}
 
 	return;
+}
+
+void timer_measure_start(void)
+{
+	/* Collect timer value for performance measurement */
+	XScuTimer_LoadTimer(&TimerInstance, 0xFFFFFFFF);
+	XScuTimer_Start(&TimerInstance);
+    XScuTimer_RestartTimer(&TimerInstance);
+}
+
+uint32_t timer_measure_stop(void)
+{
+    return (0xFFFFFFFF - XScuTimer_GetCounterValue(&TimerInstance));
+}
+
+void timer_print_diff(const char *msg, uint32_t tick_diff)
+{
+	float time_diff = 0;
+
+	time_diff = (float)(tick_diff)/TIMER_FREQ_HZ;
+    printf("\r\n%s: %f s\r\n", msg, time_diff);
 }
 
 /************************************************************************/

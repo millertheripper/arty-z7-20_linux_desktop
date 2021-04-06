@@ -38,6 +38,7 @@
 #include "xil_cache.h"
 #include "timer_ps/timer_ps.h"
 #include "xparameters.h"
+#include "sobel_filter/sobel.h"
 
 /*
  * XPAR redefines
@@ -79,17 +80,10 @@ const ivt_t ivt[] = {
 	videoVtcIvt(VID_VTC_IRPT_ID, &(videoCapt.vtc))
 };
 
-/* Vitis HLS sobel filter (AXI Stream)
- *
- */
-int hls_sobel_passthough = 1;
-
-
 
 /* ------------------------------------------------------------ */
 /*				Procedure Definitions							*/
 /* ------------------------------------------------------------ */
-
 int main(void)
 {
 	DemoInitialize();
@@ -105,9 +99,6 @@ void DemoInitialize()
 	int Status;
 	XAxiVdma_Config *vdmaConfig;
 	int i;
-
-	/* Initialize xhls sobel filter */
-	//XHls_sobel_axi_stream_top_Initialize(&videoCapt.xhls_sobel_axi_stream_inst, XPAR_XHLS_SOBEL_AXI_STREAM_TOP_0_DEVICE_ID);
 
 	/*
 	 * Initialize an array of pointers to the 3 frame buffers
@@ -179,7 +170,7 @@ void DemoInitialize()
 	 */
 	VideoSetCallback(&videoCapt, DemoISR, &fRefresh);
 
-	DemoPrintTest(dispCtrl.framePtr[dispCtrl.curFrame], dispCtrl.vMode.width, dispCtrl.vMode.height, dispCtrl.stride, DEMO_PATTERN_1);
+	//DemoPrintTest(dispCtrl.framePtr[dispCtrl.curFrame], dispCtrl.vMode.width, dispCtrl.vMode.height, dispCtrl.stride, DEMO_PATTERN_1);
 
 	return;
 }
@@ -270,6 +261,17 @@ void DemoRun()
 			VideoStart(&videoCapt);
 			DisplayChangeFrame(&dispCtrl, nextFrame);
 			break;
+		case '9':
+			nextFrame = videoCapt.curFrame + 1;
+			if (nextFrame >= DISPLAY_NUM_FRAMES)
+			{
+				nextFrame = 0;
+			}
+			VideoStop(&videoCapt);
+			DemoSobelFilter(pFrames[videoCapt.curFrame], pFrames[nextFrame], videoCapt.timing.HActiveVideo, videoCapt.timing.VActiveVideo);
+			VideoStart(&videoCapt);
+			DisplayChangeFrame(&dispCtrl, nextFrame);
+			break;
 		case 'q':
 			break;
 		case 'r':
@@ -285,8 +287,9 @@ void DemoRun()
 
 void DemoPrintMenu()
 {
-	xil_printf("\x1B[H"); //Set cursor to top left of terminal
-	xil_printf("\x1B[2J"); //Clear terminal
+	//xil_printf("\x1B[H"); //Set cursor to top left of terminal
+	//xil_printf("\x1B[2J"); //Clear terminal
+	xil_printf("\r\n");
 	xil_printf("**************************************************\n\r");
 	xil_printf("*                Arty Z7 HDMI In Demo            *\n\r");
 	xil_printf("**************************************************\n\r");
@@ -306,6 +309,7 @@ void DemoPrintMenu()
 	xil_printf("6 - Change Video Framebuffer Index\n\r");
 	xil_printf("7 - Grab Video Frame and invert colors\n\r");
 	xil_printf("8 - Grab Video Frame and scale to Display resolution\n\r");
+	xil_printf("9 - Grab Video Frame and perform sobel filter\n\r");
 	xil_printf("q - Quit\n\r");
 	xil_printf("\n\r");
 	xil_printf("\n\r");
@@ -424,10 +428,42 @@ int DemoGetInactiveFrame(DisplayCtrl *DispCtrlPtr, VideoCapture *VideoCaptPtr)
 	xil_printf("Unreachable error state reached. All buffers are in use.\r\n");
 }
 
+void DemoSobelFilter(u8 *srcFrame, u8 *destFrame, u32 width, u32 height)
+{
+	u8   *rgb,
+		 *gray,
+		 *sobel_h_res,
+		 *sobel_v_res,
+		 *contour_img_gray,
+		 *contour_img_rgb;
+
+	rgb = srcFrame;
+
+	timer_measure_start();
+	int gray_size = sobelFilter(rgb, &gray, &sobel_h_res, &sobel_v_res, &contour_img_gray, width, height);
+	int rgb_size = GrayToRgb(contour_img_gray, &contour_img_rgb, gray_size);
+	memcpy(destFrame, contour_img_rgb, rgb_size);
+	timer_print_diff("Sobel Filter Time: ", timer_measure_stop());
+
+	/*
+	 * Flush the framebuffer memory range to ensure changes are written to the
+	 * actual memory, and therefore accessible by the VDMA.
+	 */
+	Xil_DCacheFlushRange((unsigned int) destFrame, DEMO_MAX_FRAME);
+
+	free(gray);
+	free(sobel_h_res);
+	free(sobel_v_res);
+	free(contour_img_gray);
+	free(contour_img_rgb);
+}
+
 void DemoInvertFrame(u8 *srcFrame, u8 *destFrame, u32 width, u32 height, u32 stride)
 {
 	u32 xcoi, ycoi;
 	u32 lineStart = 0;
+
+	//timer_measure_start();
 	for(ycoi = 0; ycoi < height; ycoi++)
 	{
 		for(xcoi = 0; xcoi < (width * 3); xcoi+=3)
@@ -438,6 +474,7 @@ void DemoInvertFrame(u8 *srcFrame, u8 *destFrame, u32 width, u32 height, u32 str
 		}
 		lineStart += stride;
 	}
+	//timer_print_diff("Invert Filter Time: ", timer_measure_stop());
 	/*
 	 * Flush the framebuffer memory range to ensure changes are written to the
 	 * actual memory, and therefore accessible by the VDMA.

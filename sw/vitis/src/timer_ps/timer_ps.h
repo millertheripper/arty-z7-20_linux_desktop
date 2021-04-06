@@ -39,6 +39,9 @@
 
 int TimerInitialize(u16 TimerDeviceId);
 void TimerDelay(u32 uSDelay);
+void timer_measure_start(void);
+uint32_t timer_measure_stop(void);
+void timer_print_diff(const char *msg, uint32_t tick_diff);
 
 /* ------------------------------------------------------------ */
 

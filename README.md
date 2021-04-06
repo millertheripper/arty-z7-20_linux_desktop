@@ -1,4 +1,5 @@
-# Arty-Z7-20 HDMI HLS Sobel Filter 
+# Arty-Z7-20 HDMI Demo
+* Added C implementation of sobel filter
 
 ## Base HDMI Project derived from 
 https://github.com/Digilent/Arty-Z7-20-hdmi-in/tree/v2020.1
@@ -15,6 +16,7 @@ IP core and inserted into the video block design AXI stream.
 | 6         | Change the video frame buffer that HDMI data is streamed into.                                                           |
 | 7         | Invert and store the current video frame into the next video frame buffer and display it.                                |
 | 8         | Scale the current video frame to the display resolution, store it into the next video frame buffer, and then display it. |
+| 9         | Grab Video Frame and perform sobel filter.                                                                               |
 
 
 ## Requirements

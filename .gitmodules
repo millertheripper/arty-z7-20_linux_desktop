@@ -1,4 +1,0 @@
-[submodule "hw/source/ip_cores/hls_sobel_axi_stream"]
-	branch = main
-	path = hw/source/ip_cores/hls_sobel_axi_stream
-	url = git@github.com:millertheripper/hls_sobel_axi_stream.git
