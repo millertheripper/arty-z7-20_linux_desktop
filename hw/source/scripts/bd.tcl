@@ -208,10 +208,11 @@ proc create_root_design { parentCell } {
 
   set TMDS_1 [ create_bd_intf_port -mode Master -vlnv digilentinc.com:interface:tmds_rtl:1.0 TMDS_1 ]
 
-  set hdmi_hpd [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:gpio_rtl:1.0 hdmi_hpd ]
+  set hdmi_out_ddc [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:iic_rtl:1.0 hdmi_out_ddc ]
 
 
   # Create ports
+  set hdmi_out_hpd [ create_bd_port -dir O -from 0 -to 0 hdmi_out_hpd ]
 
   # Create instance: VCC, and set properties
   set VCC [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 VCC ]
@@ -426,7 +427,7 @@ proc create_root_design { parentCell } {
    CONFIG.PCW_EN_EMIO_ENET1 {0} \
    CONFIG.PCW_EN_EMIO_GPIO {0} \
    CONFIG.PCW_EN_EMIO_I2C0 {1} \
-   CONFIG.PCW_EN_EMIO_I2C1 {1} \
+   CONFIG.PCW_EN_EMIO_I2C1 {0} \
    CONFIG.PCW_EN_EMIO_MODEM_UART0 {0} \
    CONFIG.PCW_EN_EMIO_MODEM_UART1 {0} \
    CONFIG.PCW_EN_EMIO_PJTAG {0} \
@@ -441,13 +442,13 @@ proc create_root_design { parentCell } {
    CONFIG.PCW_EN_EMIO_UART0 {0} \
    CONFIG.PCW_EN_EMIO_UART1 {0} \
    CONFIG.PCW_EN_EMIO_WDT {0} \
-   CONFIG.PCW_EN_EMIO_WP_SDIO0 {1} \
+   CONFIG.PCW_EN_EMIO_WP_SDIO0 {0} \
    CONFIG.PCW_EN_EMIO_WP_SDIO1 {0} \
    CONFIG.PCW_EN_ENET0 {1} \
    CONFIG.PCW_EN_ENET1 {0} \
    CONFIG.PCW_EN_GPIO {1} \
    CONFIG.PCW_EN_I2C0 {1} \
-   CONFIG.PCW_EN_I2C1 {1} \
+   CONFIG.PCW_EN_I2C1 {0} \
    CONFIG.PCW_EN_MODEM_UART0 {0} \
    CONFIG.PCW_EN_MODEM_UART1 {0} \
    CONFIG.PCW_EN_PJTAG {0} \
@@ -526,11 +527,11 @@ proc create_root_design { parentCell } {
    CONFIG.PCW_I2C0_RESET_ENABLE {0} \
    CONFIG.PCW_I2C0_RESET_IO {<Select>} \
    CONFIG.PCW_I2C1_BASEADDR {0xE0005000} \
-   CONFIG.PCW_I2C1_GRP_INT_ENABLE {1} \
-   CONFIG.PCW_I2C1_GRP_INT_IO {EMIO} \
+   CONFIG.PCW_I2C1_GRP_INT_ENABLE {0} \
+   CONFIG.PCW_I2C1_GRP_INT_IO {<Select>} \
    CONFIG.PCW_I2C1_HIGHADDR {0xE0005FFF} \
-   CONFIG.PCW_I2C1_I2C1_IO {EMIO} \
-   CONFIG.PCW_I2C1_PERIPHERAL_ENABLE {1} \
+   CONFIG.PCW_I2C1_I2C1_IO {<Select>} \
+   CONFIG.PCW_I2C1_PERIPHERAL_ENABLE {0} \
    CONFIG.PCW_I2C1_RESET_ENABLE {0} \
    CONFIG.PCW_I2C1_RESET_IO {<Select>} \
    CONFIG.PCW_I2C_PERIPHERAL_FREQMHZ {108.333336} \
@@ -889,8 +890,8 @@ proc create_root_design { parentCell } {
    CONFIG.PCW_SD0_GRP_CD_IO {MIO 47} \
    CONFIG.PCW_SD0_GRP_POW_ENABLE {0} \
    CONFIG.PCW_SD0_GRP_POW_IO {<Select>} \
-   CONFIG.PCW_SD0_GRP_WP_ENABLE {1} \
-   CONFIG.PCW_SD0_GRP_WP_IO {EMIO} \
+   CONFIG.PCW_SD0_GRP_WP_ENABLE {0} \
+   CONFIG.PCW_SD0_GRP_WP_IO {<Select>} \
    CONFIG.PCW_SD0_PERIPHERAL_ENABLE {1} \
    CONFIG.PCW_SD0_SD0_IO {MIO 40 .. 45} \
    CONFIG.PCW_SD1_GRP_CD_ENABLE {0} \
@@ -1239,7 +1240,6 @@ proc create_root_design { parentCell } {
 
   # Create interface connections
   connect_bd_intf_net -intf_net TMDS_2 [get_bd_intf_ports TMDS] [get_bd_intf_pins dvi2rgb_0/TMDS]
-  connect_bd_intf_net -intf_net axi_gpio_0_GPIO2 [get_bd_intf_ports hdmi_hpd] [get_bd_intf_pins axi_gpio_video/GPIO]
   connect_bd_intf_net -intf_net axi_mem_intercon_M00_AXI [get_bd_intf_pins axi_mem_intercon/M00_AXI] [get_bd_intf_pins processing_system7_0/S_AXI_HP0]
   connect_bd_intf_net -intf_net axi_vdma_0_M_AXIS_MM2S [get_bd_intf_pins axi_vdma_0/M_AXIS_MM2S] [get_bd_intf_pins v_axi4s_vid_out_0/video_in]
   connect_bd_intf_net -intf_net axi_vdma_0_M_AXI_MM2S [get_bd_intf_pins axi_mem_intercon/S01_AXI] [get_bd_intf_pins axi_vdma_0/M_AXI_MM2S]
@@ -1248,6 +1248,7 @@ proc create_root_design { parentCell } {
   connect_bd_intf_net -intf_net dvi2rgb_0_RGB [get_bd_intf_pins dvi2rgb_0/RGB] [get_bd_intf_pins v_vid_in_axi4s_0/vid_io_in]
   connect_bd_intf_net -intf_net processing_system7_0_DDR [get_bd_intf_ports DDR] [get_bd_intf_pins processing_system7_0/DDR]
   connect_bd_intf_net -intf_net processing_system7_0_FIXED_IO [get_bd_intf_ports FIXED_IO] [get_bd_intf_pins processing_system7_0/FIXED_IO]
+  connect_bd_intf_net -intf_net processing_system7_0_IIC_0 [get_bd_intf_ports hdmi_out_ddc] [get_bd_intf_pins processing_system7_0/IIC_0]
   connect_bd_intf_net -intf_net processing_system7_0_M_AXI_GP0 [get_bd_intf_pins processing_system7_0/M_AXI_GP0] [get_bd_intf_pins ps7_0_axi_periph/S00_AXI]
   connect_bd_intf_net -intf_net ps7_0_axi_periph_M00_AXI [get_bd_intf_pins axi_dynclk_0/S_AXI_LITE] [get_bd_intf_pins ps7_0_axi_periph/M00_AXI]
   connect_bd_intf_net -intf_net ps7_0_axi_periph_M01_AXI [get_bd_intf_pins axi_gpio_video/S_AXI] [get_bd_intf_pins ps7_0_axi_periph/M01_AXI]
@@ -1264,6 +1265,7 @@ proc create_root_design { parentCell } {
   connect_bd_net -net axi_dynclk_0_LOCKED_O [get_bd_pins axi_dynclk_0/LOCKED_O] [get_bd_pins rgb2dvi_0/aRst_n]
   connect_bd_net -net axi_dynclk_0_PXL_CLK_5X_O [get_bd_pins axi_dynclk_0/PXL_CLK_5X_O] [get_bd_pins rgb2dvi_0/SerialClk]
   connect_bd_net -net axi_dynclk_0_PXL_CLK_O [get_bd_pins axi_dynclk_0/PXL_CLK_O] [get_bd_pins rgb2dvi_0/PixelClk] [get_bd_pins v_axi4s_vid_out_0/vid_io_out_clk] [get_bd_pins v_tc_0/clk]
+  connect_bd_net -net axi_gpio_video_gpio_io_o [get_bd_ports hdmi_out_hpd] [get_bd_pins axi_gpio_video/gpio_io_o]
   connect_bd_net -net axi_gpio_video_ip2intc_irpt [get_bd_pins axi_gpio_video/ip2intc_irpt] [get_bd_pins xlconcat_0/In4]
   connect_bd_net -net axi_vdma_0_mm2s_introut [get_bd_pins axi_vdma_0/mm2s_introut] [get_bd_pins xlconcat_0/In1]
   connect_bd_net -net axi_vdma_0_s2mm_introut [get_bd_pins axi_vdma_0/s2mm_introut] [get_bd_pins xlconcat_0/In0]
@@ -1296,8 +1298,8 @@ proc create_root_design { parentCell } {
   # Perform GUI Layout
   regenerate_bd_layout -layout_string {
    "ActiveEmotionalView":"Default View",
-   "Default View_ScaleFactor":"0.457398",
-   "Default View_TopLeft":"-752,-20",
+   "Default View_ScaleFactor":"0.743045",
+   "Default View_TopLeft":"951,271",
    "ExpandedHierarchyInLayout":"",
    "guistr":"# # String gsaved with Nlview 7.0r4  2019-12-20 bk=1.5203 VDI=41 GEI=36 GUI=JA:9.0 TLS
 #  -string -flagsOSRD
@@ -1313,7 +1315,6 @@ preplace inst axi_gpio_video -pg 1 -lvl 8 -x 2770 -y 1120 -defaultsOSRD
 preplace inst axi_mem_intercon -pg 1 -lvl 7 -x 2310 -y 640 -defaultsOSRD
 preplace inst axi_vdma_0 -pg 1 -lvl 5 -x 1580 -y 660 -defaultsOSRD
 preplace inst dvi2rgb_0 -pg 1 -lvl 2 -x 360 -y 1440 -defaultsOSRD
-preplace inst hls_sobel_axi_stream_0 -pg 1 -lvl 4 -x 1140 -y 1050 -defaultsOSRD
 preplace inst proc_sys_reset_0 -pg 1 -lvl 2 -x 360 -y 1660 -defaultsOSRD
 preplace inst processing_system7_0 -pg 1 -lvl 8 -x 2770 -y 840 -defaultsOSRD
 preplace inst ps7_0_axi_periph -pg 1 -lvl 3 -x 760 -y 820 -defaultsOSRD
@@ -1325,51 +1326,49 @@ preplace inst v_tc_0 -pg 1 -lvl 5 -x 1580 -y 410 -defaultsOSRD
 preplace inst v_tc_1 -pg 1 -lvl 5 -x 1580 -y 1170 -defaultsOSRD
 preplace inst v_vid_in_axi4s_0 -pg 1 -lvl 3 -x 760 -y 1190 -defaultsOSRD
 preplace inst xlconcat_0 -pg 1 -lvl 7 -x 2310 -y 900 -defaultsOSRD
-preplace netloc axi_dynclk_0_LOCKED_O 1 5 3 NJ 200 N 200 2510
-preplace netloc axi_dynclk_0_PXL_CLK_5X_O 1 5 3 NJ 180 N 180 2480
-preplace netloc axi_dynclk_0_PXL_CLK_O 1 4 4 1380 -10 1750 160 1900 230 2470
+preplace netloc axi_dynclk_0_LOCKED_O 1 5 3 NJ 200 NJ 200 2510
+preplace netloc axi_dynclk_0_PXL_CLK_5X_O 1 5 3 NJ 180 NJ 180 2480
+preplace netloc axi_dynclk_0_PXL_CLK_O 1 4 4 1230 -10 1750 160 1900 230 2470J
 preplace netloc axi_gpio_video_ip2intc_irpt 1 6 3 1900 1020 NJ 1020 2980
-preplace netloc axi_vdma_0_mm2s_introut 1 5 2 N 700 1870
-preplace netloc axi_vdma_0_s2mm_introut 1 5 2 N 720 1860
-preplace netloc dvi2rgb_0_PixelClk 1 1 4 160 1340 560 1050 910J 1140 1380
-preplace netloc dvi2rgb_0_pLocked 1 1 8 170 1540 540 1480 NJ 1480 N 1480 NJ 1480 N 1480 NJ 1480 2970
-preplace netloc proc_sys_reset_0_peripheral_aresetn 1 2 3 580 1060 900J 1150 1310
+preplace netloc axi_vdma_0_mm2s_introut 1 5 2 NJ 700 1870
+preplace netloc axi_vdma_0_s2mm_introut 1 5 2 NJ 720 1860
+preplace netloc dvi2rgb_0_PixelClk 1 1 4 160 1340 560 1050 970J 1140 1200J
+preplace netloc dvi2rgb_0_pLocked 1 1 8 170 1540 540 1480 NJ 1480 NJ 1480 NJ 1480 NJ 1480 NJ 1480 2970
+preplace netloc proc_sys_reset_0_peripheral_aresetn 1 2 3 580 1060 960J 1150 1160J
 preplace netloc proc_sys_reset_0_peripheral_reset 1 2 1 590 1180n
-preplace netloc processing_system7_0_FCLK_CLK0 1 0 9 -240 1040 NJ 1040 530 560 N 560 1320 1320 1770J 1300 1870 1130 2510 1010 3010
-preplace netloc processing_system7_0_FCLK_CLK1 1 2 7 600 1040 940 860 1370 790 N 790 1890 790 2490 1000 2980
-preplace netloc processing_system7_0_FCLK_CLK2 1 1 8 150 590 NJ 590 940J 600 1340 1030 NJ 1030 N 1030 NJ 1030 2990
-preplace netloc processing_system7_0_FCLK_RESET0_N 1 0 9 -240 1240 120 580 NJ 580 N 580 1380 1010 NJ 1010 1870 1000 2470J 680 3000
+preplace netloc processing_system7_0_FCLK_CLK0 1 0 9 -240 1040 NJ 1040 530 560 N 560 1180 1320 1770J 1300 1870 1130 2510 1010 3010
+preplace netloc processing_system7_0_FCLK_CLK1 1 2 7 600 1040 970 860 1200 790 NJ 790 1890 790 2490 1000 2980
+preplace netloc processing_system7_0_FCLK_CLK2 1 1 8 150 590 NJ 590 930J 600 1210 1030 NJ 1030 NJ 1030 NJ 1030 2990
+preplace netloc processing_system7_0_FCLK_RESET0_N 1 0 9 -240 1240 120 580 NJ 580 NJ 580 1230 1010 NJ 1010 1870 1000 2470J 680 3000
 preplace netloc rst_processing_system7_0_100M_interconnect_aresetn 1 1 2 130J 1030 540
-preplace netloc rst_processing_system7_0_100M_peripheral_aresetn 1 1 7 140 1050 550 570 N 570 1350 1310 NJ 1310 1900 1140 NJ
-preplace netloc rst_processing_system7_0_150M_interconnect_aresetn 1 5 2 1780 610 N
-preplace netloc rst_processing_system7_0_150M_peripheral_aresetn 1 2 5 590 600 920 960 1330 1000 1790 730 1910
-preplace netloc v_tc_0_irq 1 5 2 N 410 1880
-preplace netloc v_tc_1_irq 1 5 2 1800 920 N
+preplace netloc rst_processing_system7_0_100M_peripheral_aresetn 1 1 7 140 1050 550 570 N 570 1220 1310 NJ 1310 1900J 1140 NJ
+preplace netloc rst_processing_system7_0_150M_interconnect_aresetn 1 5 2 1780 610 NJ
+preplace netloc rst_processing_system7_0_150M_peripheral_aresetn 1 2 5 590 600 920 960 1190 1000 1790 730 1910
+preplace netloc v_tc_0_irq 1 5 2 NJ 410 1880
+preplace netloc v_tc_1_irq 1 5 2 1800 920 NJ
 preplace netloc xlconcat_0_dout 1 7 1 2500 880n
-preplace netloc xlconstant_0_dout 1 5 2 N 50 1910
-preplace netloc ps7_0_axi_periph_M03_AXI 1 3 2 910 330 N
-preplace netloc ps7_0_axi_periph_M04_AXI 1 3 2 N 850 1310
+preplace netloc xlconstant_0_dout 1 5 2 NJ 50 1910
+preplace netloc ps7_0_axi_periph_M04_AXI 1 3 2 NJ 850 1170
+preplace netloc rgb2dvi_0_TMDS 1 8 1 NJ 340
 preplace netloc TMDS_2 1 0 2 NJ 1330 130J
 preplace netloc axi_gpio_0_GPIO2 1 8 1 NJ 1090
 preplace netloc axi_mem_intercon_M00_AXI 1 7 1 2510 640n
-preplace netloc axi_vdma_0_M_AXIS_MM2S 1 5 2 1760 290 N
-preplace netloc axi_vdma_0_M_AXI_MM2S 1 5 2 1780 570 N
-preplace netloc axi_vdma_0_M_AXI_S2MM 1 5 2 1770 550 N
-preplace netloc dvi2rgb_0_DDC 1 2 7 NJ 1420 NJ 1420 N 1420 NJ 1420 1880 1340 NJ 1340 NJ
+preplace netloc axi_vdma_0_M_AXIS_MM2S 1 5 2 1760 290 NJ
+preplace netloc axi_vdma_0_M_AXI_MM2S 1 5 2 1780 570 NJ
+preplace netloc axi_vdma_0_M_AXI_S2MM 1 5 2 1770 550 NJ
+preplace netloc dvi2rgb_0_DDC 1 2 7 NJ 1420 NJ 1420 NJ 1420 NJ 1420 1880J 1340 NJ 1340 NJ
 preplace netloc dvi2rgb_0_RGB 1 2 1 570 1120n
-preplace netloc hls_sobel_axi_stream_0_p_dst 1 4 1 1300 610n
 preplace netloc processing_system7_0_DDR 1 8 1 NJ 740
 preplace netloc processing_system7_0_FIXED_IO 1 8 1 NJ 760
-preplace netloc processing_system7_0_M_AXI_GP0 1 2 7 560 -20 NJ -20 N -20 NJ -20 N -20 NJ -20 3010
-preplace netloc ps7_0_axi_periph_M00_AXI 1 3 2 900 150 N
-preplace netloc ps7_0_axi_periph_M01_AXI 1 3 5 N 790 1360 800 NJ 800 N 800 2480J
-preplace netloc ps7_0_axi_periph_M02_AXI 1 3 2 950 590 N
-preplace netloc ps7_0_axi_periph_M05_AXI 1 3 1 930 870n
-preplace netloc rgb2dvi_0_TMDS 1 8 1 NJ 340
+preplace netloc processing_system7_0_M_AXI_GP0 1 2 7 560 -20 NJ -20 NJ -20 NJ -20 NJ -20 NJ -20 3010
+preplace netloc ps7_0_axi_periph_M00_AXI 1 3 2 900 150 NJ
+preplace netloc ps7_0_axi_periph_M01_AXI 1 3 5 NJ 790 1190J 800 NJ 800 NJ 800 2480J
+preplace netloc ps7_0_axi_periph_M02_AXI 1 3 2 940 590 NJ
+preplace netloc ps7_0_axi_periph_M03_AXI 1 3 2 910 330 NJ
 preplace netloc v_axi4s_vid_out_0_vid_io_out 1 7 1 N 310
-preplace netloc v_tc_0_vtiming_out 1 5 2 1750 310 N
-preplace netloc v_vid_in_axi4s_0_video_out 1 3 1 950 1040n
-preplace netloc v_vid_in_axi4s_0_vtiming_out 1 3 2 N 1170 1300
+preplace netloc v_tc_0_vtiming_out 1 5 2 1750 310 NJ
+preplace netloc v_vid_in_axi4s_0_video_out 1 3 2 950 610 NJ
+preplace netloc v_vid_in_axi4s_0_vtiming_out 1 3 2 N 1170 1170J
 levelinfo -pg 1 -260 -50 360 760 1140 1580 1840 2310 2770 3050
 pagesize -pg 1 -db -bbox -sgen -340 -30 3160 2130
 "
