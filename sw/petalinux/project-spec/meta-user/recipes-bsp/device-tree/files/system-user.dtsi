@@ -1,12 +1,29 @@
 /include/ "system-conf.dtsi"
 / {
 	usb_phy0: phy0@e0002000 {
-		compatible = "ulpi-phy";
+		compatible = "xlnx,zynq-usb-2.20.a", "ulpi-phy";
 		#phy-cells = <0>;
 		reg = <0xe0002000 0x1000>;
 		view-port = <0x0170>;
 		drv-vbus;
 	};
+};
+
+&axi_dynclk_0 {
+	compatible = "xlnx,axi-dynclk-1.2","digilent,axi-dynclk";
+	#clock-cells = <0x0>;
+	clocks = <&clkc 15>, <&clkc 15>;
+	clock-output-names = "digilent-dynamic-clock";
+};
+
+&v_frmbuf_rd_0 {
+    reset-gpios = <&gpio0 54 1>;
+};
+
+&v_tc_0 {
+	compatible = "xlnx,v-tc-6.2", "xlnx,v-tc-6.1", "xlnx,bridge-v-tc-6.1";
+	xlnx,pixels-per-clock = <1>;
+	clocks = <&misc_clk_0>, <&clkc 15>, <&axi_dynclk_0>;
 };
 
 &amba {
@@ -19,212 +36,61 @@
 };
 
 &amba_pl {
-	encoder_0: digilent_encoder {
+	digilent_encoder {
 		compatible = "digilent,drm-encoder";
-		//digilent,fmax = <110000>;
+		clocks = <&axi_dynclk_0>;
+		clock-names = "pixel-clk";
+		digilent,fmax = <150000>;
+		digilent,hmax = <1920>;
+		digilent,vmax = <1080>;
+		digilent,hpref = <1280>;
+		digilent,vpref = <720>;	
+		digilent,clk-baseaddr = <0x43c00000>;
 		digilent,edid-i2c = <&i2c0>;
-	};
 
-	axi_vdma_vga: axi_vdma_vga@43c10000 {
-			compatible = "myir,vdma-fb";
-			dmas = <&axi_vdma_0 0>;
-			dma-names = "axi_vdma_0";
-			reg = <0x43c10000 0x10000>;
-			fmr,clk-en = <1>;			// enable or disable dynclk
-			fmr,clk-baseaddr = <0x43c00000>;
-			fmr,clk-size = <0x10000>;
-			fmr,vtc-baseaddr = <0x43c10000>; 
-			fmr,vtc-size = <0x10000>; 
-			fmr,display-color-space = <0x0>;	// RGB
-			fmr,display-interface = <0x0>;
-			active-layer = <0>;
-			videomode = "1920x1080";
-
-			fmr-video-params {
-				640x480_LCD1{
-					name = "640x480_LCD1";
-					refresh = <60>;
-					xres = <640>;
-					yres = <480>;
-					pixclock-khz = <25000>;
-					left-margin = <16>;
-					right-margin = <48>;
-					upper-margin = <10>;
-					lower-margin = <33>;
-					hsync-len = <96>;
-					vsync-len = <2>;
-					sync = <0>;
-					vmode = <0>;
-
-					dynclk-clk0L = <0x0104>;
-					dynclk-clkFBL = <0x0145>;
-					dynclk-clkFBH_clk0H = <0>;
-					dynclk-divclk = <0x1041>;
-					dynclk-lockL = <0x3E8FA401>;
-					dynclk-fltr_lockH = <0x4B00E7>;
-				};
-				480x272_LCDV1{
-					name = "480x272_LCDV1";
-					refresh = <60>;
-					xres = <480>;
-					yres = <272>;
-					pixclock-khz = <10000>;
-					left-margin = <40>;
-					right-margin = <40>;
-					upper-margin = <29>;
-					lower-margin = <13>;
-					hsync-len = <48>;
-					vsync-len = <3>;
-					sync = <0>;
-					vmode = <0>;
-
-					dynclk-clk0L = <0x0186>;
-					dynclk-clkFBL = <0x00C3>;
-					dynclk-clkFBH_clk0H = <0>;
-					dynclk-divclk = <0x1041>;
-					dynclk-lockL = <0x7E8FA401>;
-					dynclk-fltr_lockH = <0x73008C>;
-				};
-				800x480_LCDV2 {
-					name = "800x480_LCDV2";
-					refresh = <60>;
-					xres = <800>;
-					yres = <480>;
-					pixclock-khz = <33330>;
-					left-margin = <210>;
-					right-margin = <44>;
-					upper-margin = <22>;
-					lower-margin = <21>;
-					hsync-len = <2>;
-					vsync-len = <2>;
-					sync = <0>;
-					vmode = <0>;
-
-					dynclk-clk0L = <0x8000C4>;
-					dynclk-clkFBL = <0x800452>;
-					dynclk-clkFBH_clk0H = <0>;
-					dynclk-divclk = <0x2042>;
-					dynclk-lockL = <0xD13FA401>;
-					dynclk-fltr_lockH = <0x6300FF>;
-				};
-				1024x768 {
-					name = "1024x768";
-					refresh = <60>;
-					xres = <1024>;
-					yres = <768>;
-					pixclock-khz = <65000>;
-					left-margin = <24>;//H Front Porch
-					right-margin = <160>;//H Back Porch
-					upper-margin = <29>;//V Back Porch
-					lower-margin = <3>;//V Front Porch
-					hsync-len = <136>;//H Sync Time
-					vsync-len = <6>;//V Sync Time
-					sync = <0>;
-					vmode = <0>;
-
-					dynclk-clk0L = <0x0041>;
-					dynclk-clkFBL = <0x800187>;
-					dynclk-clkFBH_clk0H = <0>;
-					dynclk-divclk = <0x0041>;
-					dynclk-lockL = <0xEEEFA401>;
-					dynclk-fltr_lockH = <0xB300FF>;
-				};
-				1280x720 {
-					name = "1280x720";
-					refresh = <60>;
-					xres = <1280>;
-					yres = <720>;
-					pixclock-khz = <74250>;
-					left-margin = <220>;
-					right-margin = <110>;
-					upper-margin = <20>;
-					lower-margin = <5>;
-					hsync-len = <40>;
-					vsync-len = <5>;
-					sync = <1>;
-					vmode = <0>;
-
-					dynclk-clk0L = <0x0041>;
-					dynclk-clkFBL = <0x069A>;
-					dynclk-clkFBH_clk0H = <0>;
-					dynclk-divclk = <0x20C4>;
-					dynclk-lockL = <0xCFAFA401>;
-					dynclk-fltr_lockH = <0xA300FF>;
-				};
-				1680x1050 {
-					name = "1680x1050";
-					refresh = <60>;
-					xres = <1680>;
-					yres = <1050>;
-					pixclock-khz = <119000>;
-					left-margin = <80>;
-					right-margin = <48>;
-					upper-margin = <21>;
-					lower-margin = <3>;
-					hsync-len = <32>;
-					vsync-len = <6>;
-					sync = <0>;
-					vmode = <0>;
-
-					dynclk-clk0L = <0x400041>;
-					dynclk-clkFBL = <0x00C3>;
-					dynclk-clkFBH_clk0H = <0>;
-					dynclk-divclk = <0x1041>;
-					dynclk-lockL = <0x7E8FA401>;
-					dynclk-fltr_lockH = <0x73008C>;
-				};
-				1920x1080 {
-					name = "1920x1080";
-					refresh = <60>;
-					xres = <1920>;
-					yres = <1080>;
-					pixclock-khz = <148500>;
-					left-margin = <88>;	//H Front Porch
-					right-margin = <148>;	//H Back Porch
-					upper-margin = <36>;	//V Back Porch
-					lower-margin = <4>;	//V Front Porch
-					hsync-len = <44>;	//H Sync Time
-					vsync-len = <5>;	//V Sync Time
-					sync = <0>;
-					vmode = <0>;
-
-					dynclk-clk0L = <0x400041>;
-					dynclk-clkFBL = <0x069A>;
-					dynclk-clkFBH_clk0H = <0>;
-					dynclk-divclk = <0x20C4>;
-					dynclk-lockL = <0xCFAFA401>;
-					dynclk-fltr_lockH = <0xA300FF>;
+		#address-cell = <1>;
+		#size-cell = <0>;
+		ports {
+			#address-cell = <1>;
+			#size-cell = <0>;
+			port@0 {
+				reg = <0>;
+				hdmi_encoder: endpoint {
+				remote-endpoint = <&pl_disp_crtc>;
 				};
 			};
+		};
 	};
 
-	xilinx_drm {
-		compatible = "xlnx,drm";
-		xlnx,vtc = <&v_tc_0>;
-		xlnx,connector-type = "HDMIA";
-		xlnx,encoder-slave = <&encoder_0>;
-		clocks = <&axi_dynclk_0>;
-		digilent,edid-i2c = <&i2c0>;
-		planes {
-			xlnx,pixel-format = "xrgb8888";
-			plane0 {
-				dmas = <&axi_vdma_0 0>;
-				dma-names = "axi_vdma_0";
+
+	drm-pl-disp-drv {
+		compatible = "xlnx,pl-disp";
+		dmas = <&v_frmbuf_rd_0 0>;
+		dma-names = "dma0";
+		xlnx,vformat = "AR24";
+		xlnx,bridge = <&v_tc_0>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+        	status = "okay";
+
+		pl_display_port: port@0 {
+			reg = <0>;
+			pl_disp_crtc: endpoint {
+				remote-endpoint = <&hdmi_encoder>;
 			};
 		};
 	};
 };
 
-&axi_dynclk_0 {
-	compatible = "xlnx,axi-dynclk-1.2","digilent,axi-dynclk";
-};
-
-//&axi_vdma_0 {
-//	dma-ranges = <0x00000000 0x00000000 0x20000000>;
-//	xlnx,num-fstores = <0x1>;
-//};
-
 &usb0 {
 	dr_mode = "host";
 	usb-phy = <&usb_phy0>;
+};
+
+&axi_intc_0 {
+	interrupt-names = "irq";
+      	interrupt-parent = <&intc>;
+      	interrupts = <0 29 4>;
+	xlnx,kind-of-intr = <0x0>;
+      	xlnx,num-intr-inputs = <0x20>;
 };

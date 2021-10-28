@@ -42,40 +42,40 @@ MODULE_DESCRIPTION("clk-dglnt-dynclk - CCF Driver for Digilent axi_dynclk IP Cor
 
 /* END - Standard module information, edit as appropriate */
 
-#define CLK_BIT_WEDGE 13
-#define CLK_BIT_NOCOUNT 12
+#define CLK_BIT_WEDGE			13
+#define CLK_BIT_NOCOUNT			12
 
-#define CLK_BIT_WEDGE 13
-#define CLK_BIT_NOCOUNT 12
+#define CLK_BIT_WEDGE			13
+#define CLK_BIT_NOCOUNT			12
 
 /* This value is used to signal an error */
-#define ERR_CLKCOUNTCALC 0xFFFFFFFF
-#define ERR_CLKDIVIDER (1 << CLK_BIT_WEDGE | 1 << CLK_BIT_NOCOUNT)
+#define ERR_CLKCOUNTCALC		0xFFFFFFFF
+#define ERR_CLKDIVIDER			(1 << CLK_BIT_WEDGE | 1 << CLK_BIT_NOCOUNT)
 
-#define DYNCLK_DIV_1_REGMASK 0x1041
+#define DYNCLK_DIV_1_REGMASK		0x1041
 /* 25 MHz (125 KHz / 5) */
-#define DYNCLK_DEFAULT_FREQ 125000
+#define DYNCLK_DEFAULT_FREQ		125000
 
-#define MMCM_FREQ_VCOMIN 600000
-#define MMCM_FREQ_VCOMAX 1200000
-#define MMCM_FREQ_PFDMIN 10000
-#define MMCM_FREQ_PFDMAX 450000
-#define MMCM_FREQ_OUTMIN 4000
-#define MMCM_FREQ_OUTMAX 800000
-#define MMCM_DIV_MAX 106
-#define MMCM_FB_MIN 2
-#define MMCM_FB_MAX 64
-#define MMCM_CLKDIV_MAX 128
-#define MMCM_CLKDIV_MIN 1
+#define MMCM_FREQ_VCOMIN		600000
+#define MMCM_FREQ_VCOMAX		1200000
+#define MMCM_FREQ_PFDMIN		10000
+#define MMCM_FREQ_PFDMAX		450000
+#define MMCM_FREQ_OUTMIN		4000
+#define MMCM_FREQ_OUTMAX		800000
+#define MMCM_DIV_MAX			106
+#define MMCM_FB_MIN			2
+#define MMCM_FB_MAX			64
+#define MMCM_CLKDIV_MAX			128
+#define MMCM_CLKDIV_MIN			1
 
-#define OFST_DISPLAY_CTRL 0x0
-#define OFST_DISPLAY_STATUS 0x4
-#define OFST_DISPLAY_CLK_L 0x8
-#define OFST_DISPLAY_FB_L 0x0C
-#define OFST_DISPLAY_FB_H_CLK_H 0x10
-#define OFST_DISPLAY_DIV 0x14
-#define OFST_DISPLAY_LOCK_L 0x18
-#define OFST_DISPLAY_FLTR_LOCK_H 0x1C
+#define OFST_DISPLAY_CTRL		0x0
+#define OFST_DISPLAY_STATUS		0x4
+#define OFST_DISPLAY_CLK_L		0x8
+#define OFST_DISPLAY_FB_L		0x0C
+#define OFST_DISPLAY_FB_H_CLK_H		0x10
+#define OFST_DISPLAY_DIV		0x14
+#define OFST_DISPLAY_LOCK_L		0x18
+#define OFST_DISPLAY_FLTR_LOCK_H	0x1C
 
 
 static const u64 lock_lookup[64] =
@@ -510,11 +510,12 @@ static int dglnt_dynclk_set_rate(struct clk_hw *clk_hw,
 	dglnt_dynclk_disable(clk_hw);
 	dglnt_dynclk_enable(clk_hw);
 
+	printk(KERN_INFO "Digilent dynamic clock rate set to %lu (kHz) with parent clock %lu (khz)\r\n", rate, parent_rate);
+
 	return 0;
 }
 
-static long dglnt_dynclk_round_rate(struct clk_hw *hw, unsigned long rate,
-	unsigned long *parent_rate)
+static long dglnt_dynclk_round_rate(struct clk_hw *hw, unsigned long rate, unsigned long *parent_rate)
 {
 	struct dglnt_dynclk_mode clkMode;
 
@@ -523,22 +524,20 @@ static long dglnt_dynclk_round_rate(struct clk_hw *hw, unsigned long rate,
 	return (clkMode.freq * 200);
 }
 
-static unsigned long dglnt_dynclk_recalc_rate(struct clk_hw *clk_hw,
-	unsigned long parent_rate)
+static unsigned long dglnt_dynclk_recalc_rate(struct clk_hw *clk_hw, unsigned long parent_rate)
 {
 	struct dglnt_dynclk *dglnt_dynclk = clk_hw_to_dglnt_dynclk(clk_hw);
 
 	return dglnt_dynclk->freq;
 }
 
-
 static const struct clk_ops dglnt_dynclk_ops =
 {
-	.recalc_rate = dglnt_dynclk_recalc_rate,
-	.round_rate = dglnt_dynclk_round_rate,
-	.set_rate = dglnt_dynclk_set_rate,
-	.enable = dglnt_dynclk_enable,
-	.disable = dglnt_dynclk_disable,
+	.recalc_rate	= dglnt_dynclk_recalc_rate,
+	.round_rate	= dglnt_dynclk_round_rate,
+	.set_rate	= dglnt_dynclk_set_rate,
+	.enable		= dglnt_dynclk_enable,
+	.disable	= dglnt_dynclk_disable,
 };
 
 
@@ -611,14 +610,17 @@ static int clk_dglnt_dynclk_probe(struct platform_device *pdev)
 	dglnt_dynclk_disable(&dglnt_dynclk->clk_hw);
 
 	dglnt_dynclk->clk_hw.init = &init;
-	clk = devm_clk_hw_register(&pdev->dev, &dglnt_dynclk->clk_hw);
+	/* Revert to deprecated driver to make it work with Linux FB Emulator */
+//	clk = devm_clk_hw_register(&pdev->dev, &dglnt_dynclk->clk_hw);
+	clk = devm_clk_register(&pdev->dev, &dglnt_dynclk->clk_hw);
 	if (IS_ERR(clk))
 	{
 		return PTR_ERR(clk);
 	}
 
-	rc = of_clk_add_hw_provider(pdev->dev.of_node, of_clk_hw_simple_get, clk);
-
+	/* Revert to deprecated driver to make it work with Linux FB Emulator */
+//	rc = of_clk_add_hw_provider(pdev->dev.of_node, of_clk_hw_simple_get, clk);
+	rc = of_clk_add_provider(pdev->dev.of_node, of_clk_src_simple_get, clk);
 	dev_info(&pdev->dev, "clk_dglnt_dynclk probed %d\r\n", rc);
 	return rc;
 }
@@ -641,20 +643,5 @@ static struct platform_driver clk_dglnt_dynclk_driver =
 	.probe		= clk_dglnt_dynclk_probe,
 	.remove		= clk_dglnt_dynclk_remove,
 };
-
-
-static int __init clk_dglnt_dynclk_init(void)
-{
-	return platform_driver_register(&clk_dglnt_dynclk_driver);;
-}
-
-
-static void __exit clk_dglnt_dynclk_exit(void)
-{
-	platform_driver_unregister(&clk_dglnt_dynclk_driver);
-	printk(KERN_INFO "clk-dglnt-dynclk module exit.\r\n");
-}
-
-module_init(clk_dglnt_dynclk_init);
-module_exit(clk_dglnt_dynclk_exit);
+module_platform_driver(clk_dglnt_dynclk_driver);
 

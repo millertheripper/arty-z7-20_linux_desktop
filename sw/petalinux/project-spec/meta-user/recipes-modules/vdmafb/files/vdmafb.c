@@ -118,28 +118,34 @@ static int vdmafb_parse_hw_info(struct device_node *np, struct vdmafb_init_data 
 	return 0;
 }
 
-static void vdmafb_set_ctrl_reg(struct vdmafb_init_data *init_data,
-								unsigned long pix_data_invert, unsigned long pix_clk_act_high)
+static void vdmafb_set_ctrl_reg(struct vdmafb_init_data *init_data, unsigned long pix_data_invert, unsigned long pix_clk_act_high)
 {
 	u32 sync = init_data->vmode_data.fb_vmode.sync;
 	u32 ctrl = CTRL_REG_INIT;
 
 	/* FB_SYNC_HOR_HIGH_ACT */
 	if (!(sync & (1 << 0)))
+	{
 		ctrl &= (~(1 << 1));
+	}
 	/* FB_SYNC_VERT_HIGH_ACT */
 	if (!(sync & (1 << 1)))
+	{
 		ctrl &= (~(1 << 3));
+	}
 	if (pix_data_invert)
+	{
 		ctrl |= LOGICVC_PIX_DATA_INVERT;
+	}
 	if (pix_clk_act_high)
+	{
 		ctrl |= LOGICVC_PIX_ACT_HIGH;
+	}
 
 	init_data->vmode_data.ctrl_reg = ctrl;
 }
 
-static int vdmafb_parse_vmode_info(struct device_node *np,
-								   struct vdmafb_init_data *init_data)
+static int vdmafb_parse_vmode_info(struct device_node *np, struct vdmafb_init_data *init_data)
 {
 	struct device_node *dn, *vmode_np;
 	u32 const *prop;
@@ -160,8 +166,7 @@ static int vdmafb_parse_vmode_info(struct device_node *np,
 	}
 	else
 	{
-		pr_info("fmrfb setting default layer to %d\n",
-				init_data->active_layer);
+		pr_info("fmrfb setting default layer to %d\n", init_data->active_layer);
 	}
 
 	prop = of_get_property(np, "videomode", &size);
@@ -173,13 +178,13 @@ static int vdmafb_parse_vmode_info(struct device_node *np,
 			dn = of_find_node_by_name(NULL, "fmr-video-params");
 			if (dn)
 			{
-				strcpy(init_data->vmode_data.fb_vmode_name,
-					   (char *)prop);
-				vmode_np = of_find_node_by_name(dn,
-												init_data->vmode_data.fb_vmode_name);
+				strcpy(init_data->vmode_data.fb_vmode_name, (char *)prop);
+				vmode_np = of_find_node_by_name(dn, init_data->vmode_data.fb_vmode_name);
 				c = strchr((char *)prop, '_');
 				if (c)
+				{
 					*c = 0;
+				}
 				strcpy(init_data->vmode_data.fb_vmode_name, (char *)prop);
 			}
 			else
@@ -196,129 +201,182 @@ static int vdmafb_parse_vmode_info(struct device_node *np,
 		{
 			prop = of_get_property(vmode_np, "refresh", &size);
 			if (!prop)
+			{
 				pr_err("Error getting refresh rate\n");
+			}
 			else
-				init_data->vmode_data.fb_vmode.refresh =
-					be32_to_cpup(prop);
+			{
+				init_data->vmode_data.fb_vmode.refresh = be32_to_cpup(prop);
+			}
 
 			prop = of_get_property(vmode_np, "xres", &size);
 			if (!prop)
+			{
 				pr_err("Error getting xres\n");
+			}
 			else
-				init_data->vmode_data.fb_vmode.xres =
-					be32_to_cpup(prop);
-
+			{
+				init_data->vmode_data.fb_vmode.xres = be32_to_cpup(prop);
+			}
 			prop = of_get_property(vmode_np, "yres", &size);
 			if (!prop)
+			{
 				pr_err("Error getting yres\n");
+			}
 			else
-				init_data->vmode_data.fb_vmode.yres =
-					be32_to_cpup(prop);
+			{
+				init_data->vmode_data.fb_vmode.yres = be32_to_cpup(prop);
+			}
 
 			prop = of_get_property(vmode_np, "pixclock-khz", &size);
 			if (!prop)
+			{
 				pr_err("Error getting pixclock-khz\n");
+			}
 			else
-				init_data->vmode_data.fb_vmode.pixclock =
-					KHZ2PICOS(be32_to_cpup(prop));
+			{
+				init_data->vmode_data.fb_vmode.pixclock = KHZ2PICOS(be32_to_cpup(prop));
+			}
 
 			prop = of_get_property(vmode_np, "left-margin", &size);
 			if (!prop)
+			{
 				pr_err("Error getting left-margin\n");
+			}
 			else
-				init_data->vmode_data.fb_vmode.left_margin =
-					be32_to_cpup(prop);
+			{
+				init_data->vmode_data.fb_vmode.left_margin = be32_to_cpup(prop);
+			}
 
 			prop = of_get_property(vmode_np, "right-margin", &size);
 			if (!prop)
+			{
 				pr_err("Error getting right-margin\n");
+			}
 			else
-				init_data->vmode_data.fb_vmode.right_margin =
-					be32_to_cpup(prop);
+			{
+				init_data->vmode_data.fb_vmode.right_margin = be32_to_cpup(prop);
+			}
 
 			prop = of_get_property(vmode_np, "upper-margin", &size);
 			if (!prop)
+			{
 				pr_err("Error getting upper-margin\n");
+			}
 			else
-				init_data->vmode_data.fb_vmode.upper_margin =
-					be32_to_cpup(prop);
+			{
+				init_data->vmode_data.fb_vmode.upper_margin = be32_to_cpup(prop);
+			}
 
 			prop = of_get_property(vmode_np, "lower-margin", &size);
 			if (!prop)
+			{
 				pr_err("Error getting lower-margin\n");
+			}
 			else
-				init_data->vmode_data.fb_vmode.lower_margin =
-					be32_to_cpup(prop);
+			{
+				init_data->vmode_data.fb_vmode.lower_margin = be32_to_cpup(prop);
+			}
 
 			prop = of_get_property(vmode_np, "hsync-len", &size);
 			if (!prop)
+			{
 				pr_err("Error getting hsync-len\n");
+			}
 			else
-				init_data->vmode_data.fb_vmode.hsync_len =
-					be32_to_cpup(prop);
+			{
+				init_data->vmode_data.fb_vmode.hsync_len = be32_to_cpup(prop);
+			}
 
 			prop = of_get_property(vmode_np, "vsync-len", &size);
 			if (!prop)
+			{
 				pr_err("Error getting vsync-len\n");
+			}
 			else
-				init_data->vmode_data.fb_vmode.vsync_len =
-					be32_to_cpup(prop);
+			{
+				init_data->vmode_data.fb_vmode.vsync_len = be32_to_cpup(prop);
+			}
 
 			prop = of_get_property(vmode_np, "sync", &size);
 			if (!prop)
+			{
 				pr_err("Error getting sync\n");
+			}
 			else
-				init_data->vmode_data.fb_vmode.sync =
-					be32_to_cpup(prop);
+			{
+				init_data->vmode_data.fb_vmode.sync = be32_to_cpup(prop);
+			}
 
 			prop = of_get_property(vmode_np, "vmode", &size);
 			if (!prop)
+			{
 				pr_err("Error getting vmode\n");
+			}
 			else
-				init_data->vmode_data.fb_vmode.vmode =
-					be32_to_cpup(prop);
+			{
+				init_data->vmode_data.fb_vmode.vmode = be32_to_cpup(prop);
+			}
 
 			prop = of_get_property(vmode_np, "dynclk-clk0L", &size);
 			if (!prop)
+			{
 				pr_err("Error getting clk0L\n");
+			}
 			else
-				init_data->clkreg.clk0L =
-					be32_to_cpup(prop);
+			{
+				init_data->clkreg.clk0L = be32_to_cpup(prop);
+			}
 
 			prop = of_get_property(vmode_np, "dynclk-clkFBL", &size);
 			if (!prop)
+			{
 				pr_err("Error getting clkFBL\n");
+			}
 			else
-				init_data->clkreg.clkFBL =
-					be32_to_cpup(prop);
+			{
+				init_data->clkreg.clkFBL = be32_to_cpup(prop);
+			}
 
 			prop = of_get_property(vmode_np, "dynclk-clkFBH_clk0H", &size);
 			if (!prop)
+			{
 				pr_err("Error getting clkFBH_clk0H\n");
+			}
 			else
-				init_data->clkreg.clkFBH_clk0H =
-					be32_to_cpup(prop);
+			{
+				init_data->clkreg.clkFBH_clk0H = be32_to_cpup(prop);
+			}
 
 			prop = of_get_property(vmode_np, "dynclk-divclk", &size);
 			if (!prop)
+			{
 				pr_err("Error getting divclk\n");
+			}
 			else
-				init_data->clkreg.divclk =
-					be32_to_cpup(prop);
+			{
+				init_data->clkreg.divclk = be32_to_cpup(prop);
+			}
 
 			prop = of_get_property(vmode_np, "dynclk-lockL", &size);
 			if (!prop)
+			{
 				pr_err("Error getting lockL\n");
+			}
 			else
-				init_data->clkreg.lockL =
-					be32_to_cpup(prop);
+			{
+				init_data->clkreg.lockL = be32_to_cpup(prop);
+			}
 
 			prop = of_get_property(vmode_np, "dynclk-fltr_lockH", &size);
 			if (!prop)
+			{
 				pr_err("Error getting fltr_lockH\n");
+			}
 			else
-				init_data->clkreg.fltr_lockH =
-					be32_to_cpup(prop);
+			{
+				init_data->clkreg.fltr_lockH = be32_to_cpup(prop);
+			}
 
 			init_data->vmode_params_set = true;
 		}
@@ -372,8 +430,7 @@ static void vdmafb_init_vtc_regs(struct vdmafb_layer_data *ld, struct vdmafb_com
 	writel((cd->vmode_data_current.fb_vmode.xres << 16) | cd->vmode_data_current.fb_vmode.xres, ld->vtc_base_virt + 0x88);
 	writel((cd->vmode_data_current.fb_vmode.yres + cd->vmode_data_current.fb_vmode.lower_margin - 1) | ((cd->vmode_data_current.fb_vmode.yres + cd->vmode_data_current.fb_vmode.lower_margin + cd->vmode_data_current.fb_vmode.vsync_len - 1) << 16), ld->vtc_base_virt + 0x8c);
 
-	writel(((cd->vmode_data_current.fb_vmode.xres + cd->vmode_data_current.fb_vmode.left_margin) << 16) |
-			   (cd->vmode_data_current.fb_vmode.xres + cd->vmode_data_current.fb_vmode.left_margin), ld->vtc_base_virt + 0x90);
+	writel(((cd->vmode_data_current.fb_vmode.xres + cd->vmode_data_current.fb_vmode.left_margin) << 16) | (cd->vmode_data_current.fb_vmode.xres + cd->vmode_data_current.fb_vmode.left_margin), ld->vtc_base_virt + 0x90);
 
 	// writel(0x3F7EF06, ld->vtc_base_virt + 0x00);
 	// writel(0x4380780, ld->vtc_base_virt + 0x60);
@@ -436,7 +493,7 @@ static int vdmafb_setupfb(struct vdmafb_dev *fbdev)
 	struct xilinx_vdma_config vdma_config;
 	int hsize = var->xres * 4;
 
-	dmaengine_terminate_all(fbdev->dma);
+	dmaengine_terminate_async(fbdev->dma);
 
 	/* Setup VDMA address etc */
 	memset(&vdma_config, 0, sizeof(vdma_config));
@@ -623,17 +680,21 @@ void ClkWriteReg (ClkConfig *regValues, u32 dynClkAddr)
 
 	writel(regValues->clk0L, 		dynClkAddr + OFST_DYNCLK_CLK_L);
 	writel(regValues->clkFBL, 		dynClkAddr + OFST_DYNCLK_FB_L);
-	writel(regValues->clkFBH_clk0H, dynClkAddr + OFST_DYNCLK_FB_H_CLK_H);
+	writel(regValues->clkFBH_clk0H,		dynClkAddr + OFST_DYNCLK_FB_H_CLK_H);
 	writel(regValues->divclk, 		dynClkAddr + OFST_DYNCLK_DIV);
 	writel(regValues->lockL, 		dynClkAddr + OFST_DYNCLK_LOCK_L);
-	writel(regValues->fltr_lockH, 	dynClkAddr + OFST_DYNCLK_FLTR_LOCK_H);
+	writel(regValues->fltr_lockH,		dynClkAddr + OFST_DYNCLK_FLTR_LOCK_H);
 }
 
 void ClkStart(u32 dynClkAddr)
 {
 	writel((1 << BIT_DYNCLK_START),   dynClkAddr + OFST_DYNCLK_CTRL);
 	writel((1 << BIT_DYNCLK_RUNNING), dynClkAddr + OFST_DYNCLK_STATUS);
-	while(!(readl(dynClkAddr + OFST_DYNCLK_STATUS) & (1 << BIT_DYNCLK_RUNNING)));
+	
+	while(!(readl(dynClkAddr + OFST_DYNCLK_STATUS) & (1 << BIT_DYNCLK_RUNNING)))
+	{
+		/* Do nothing. */
+	}
 
 	return;
 }
@@ -641,7 +702,11 @@ void ClkStart(u32 dynClkAddr)
 void ClkStop(u32 dynClkAddr)
 {
 	writel(0,   dynClkAddr + OFST_DYNCLK_CTRL);
-	while((readl(dynClkAddr + OFST_DYNCLK_STATUS) & (1 << BIT_DYNCLK_RUNNING)));
+	
+	while((readl(dynClkAddr + OFST_DYNCLK_STATUS) & (1 << BIT_DYNCLK_RUNNING)))
+	{
+		/* Do nothing. */
+	}
 
 	return;
 }
@@ -713,11 +778,11 @@ static int vdmafb_setcolreg(u_int regno, u_int red, u_int green, u_int blue,
 	u32 value;
 
 	if (regno >= 16)
+	{
 		return -EINVAL;
+	}
 
-	value = (cr << info->var.red.offset) |
-			(cg << info->var.green.offset) |
-			(cb << info->var.blue.offset);
+	value = (cr << info->var.red.offset) | (cg << info->var.green.offset) | (cb << info->var.blue.offset);
 	if (info->var.transp.length > 0)
 	{
 		u32 mask = (1 << info->var.transp.length) - 1;
@@ -762,7 +827,9 @@ static int vdmafb_probe(struct platform_device *pdev)
 
 	fbdev = devm_kzalloc(&pdev->dev, sizeof(*fbdev), GFP_KERNEL);
 	if (!fbdev)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, fbdev);
 
@@ -774,7 +841,9 @@ static int vdmafb_probe(struct platform_device *pdev)
 					   sizeof(struct dma_interleaved_template) + sizeof(struct data_chunk),
 					   GFP_KERNEL);
 	if (!fbdev->dma_template)
+	{
 		return -ENOMEM;
+	}
 
 	reg_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	// irq_res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
@@ -786,7 +855,9 @@ static int vdmafb_probe(struct platform_device *pdev)
 
 	ret = vdmafb_parse_hw_info(pdev->dev.of_node, &init_data);
 	if (ret)
+	{
 		return ret;
+	}
 
 	vdmafb_parse_vmode_info(pdev->dev.of_node, &init_data);
 
@@ -874,8 +945,8 @@ static int vdmafb_probe(struct platform_device *pdev)
 
 	/*
 	 * Enable the dynamically generated clock
-    */
-    if(init_data.clk_en)
+    	*/
+    	if(init_data.clk_en)
    	{
 		ClkStop(ld->clk_base_virt);
 		ClkStart(ld->clk_base_virt);
@@ -887,8 +958,7 @@ static int vdmafb_probe(struct platform_device *pdev)
 
 	/* Allocate framebuffer memory */
 	fbsize = fbdev->info.fix.smem_len;
-	fbdev->fb_virt = dma_alloc_coherent(&pdev->dev, PAGE_ALIGN(fbsize),
-										&fbdev->fb_phys, GFP_KERNEL);
+	fbdev->fb_virt = dma_alloc_coherent(&pdev->dev, PAGE_ALIGN(fbsize), &fbdev->fb_phys, GFP_KERNEL);
 	if (!fbdev->fb_virt)
 	{
 		dev_err(&pdev->dev,
@@ -905,7 +975,7 @@ static int vdmafb_probe(struct platform_device *pdev)
 	/* Clear framebuffer */
 	memset_io(fbdev->fb_virt, 0, fbsize);
 
-	fbdev->dma = dma_request_slave_channel(&pdev->dev, "axi_vdma_0");
+	fbdev->dma = dma_request_chan(&pdev->dev, "axi_vdma_0");
 	if (IS_ERR_OR_NULL(fbdev->dma))
 	{
 		ret = PTR_ERR(fbdev->dma);
@@ -957,9 +1027,9 @@ static int vdmafb_remove(struct platform_device *pdev)
 	unregister_framebuffer(&fbdev->info);
 
 	dma_release_channel(fbdev->dma);
-	dma_free_coherent(&pdev->dev, PAGE_ALIGN(fbdev->info.fix.smem_len),
-					  fbdev->fb_virt, fbdev->fb_phys);
+	dma_free_coherent(&pdev->dev, PAGE_ALIGN(fbdev->info.fix.smem_len), fbdev->fb_virt, fbdev->fb_phys);
 	fb_dealloc_cmap(&fbdev->info.cmap);
+
 	return 0;
 }
 
@@ -969,7 +1039,7 @@ static struct of_device_id vdmafb_match[] =
 	{
 		.compatible = "myir,vdma-fb",
 	},
-	{},
+	{ },
 };
 MODULE_DEVICE_TABLE(of, vdmafb_match);
 

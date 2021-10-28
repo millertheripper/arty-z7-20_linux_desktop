@@ -4,10 +4,42 @@
 CONFIG_gpio-demo
 CONFIG_peekpoke
 
+#ZOCL Support
+CONFIG_zocl
+
+#XRT Support
+CONFIG_packagegroup-petalinux-xrt
+CONFIG_xrt
+CONFIG_xrt-dev
+
+#Easy System Management
+CONFIG_dnf
+CONFIG_e2fsprogs-resize2fs
+CONFIG_parted
+CONFIG_resize-part
+
+#Vitis AI Dependency
+CONFIG_dpu
+CONFIG_packagegroup-petalinux-vitisai
+
+#Vitis AI On-board build Dependency
+CONFIG_packagegroup-petalinux-self-hosted
+CONFIG_cmake
+CONFIG_packagegroup-petalinux-vitisai-dev
+CONFIG_opencl-clhpp-dev
+CONFIG_opencl-headers-dev
+CONFIG_packagegroup-petalinux-opencv
+CONFIG_packagegroup-petalinux-opencv-dev
+
+CONFIG_packagegroup-petalinux-x11
+
+#Vitis AI Demo GUI Dependency
+CONFIG_mesa_megadriver
+
 #Kernel config
 CONFIG_kernel-module-hdmi
-CONFIG_digilent-encoder
+
+CONFIG_kernel-devsrc
 CONFIG_clk-dglnt-dynclk
+CONFIG_digilent-encoder
 CONFIG_vdmafb
-
-

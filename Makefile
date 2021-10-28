@@ -7,6 +7,9 @@ all: fpga vitis
 vitis:
 	$(MAKE) -C sw/vitis
 
+.PHONY: petalinux
+	$(MAKE) -C sw/petalinux
+
 .PHONY: fpga
 fpga:
 	$(MAKE) -C hw

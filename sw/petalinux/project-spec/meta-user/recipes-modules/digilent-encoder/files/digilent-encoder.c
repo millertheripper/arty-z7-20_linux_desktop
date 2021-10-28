@@ -17,9 +17,7 @@
 
 */
 
-#include <linux/export.h>
-#include <linux/component.h>
-
+#include <drm/drmP.h>
 #include <drm/drm.h>
 #include <drm/drm_print.h>
 #include <drm/drm_edid.h>
@@ -29,6 +27,9 @@
 #include <drm/drm_probe_helper.h>
 #include <drm/drm_encoder_slave.h>
 
+#include <video/videomode.h>
+
+#include <linux/clk.h>
 #include <linux/device.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -39,9 +40,12 @@
 #include <linux/io.h>
 #include <linux/interrupt.h>
 
+#include <linux/export.h>
+#include <linux/component.h>
 #include <linux/of_address.h>
 #include <linux/of_device.h>
 #include <linux/of_platform.h>
+#include <linux/of_graph.h>
 #include <linux/platform_device.h>
 
 /* BEGIN - Standard module information, edit as appropriate */
@@ -57,25 +61,30 @@ MODULE_DESCRIPTION("digilent_encoder - DRM slave encoder for Video-out on Digile
 /*
  * Default frame maximums/prefs; can be set in devicetree
  */
-#define DIGILENT_ENC_MAX_FREQ 150000  //KHz
-#define DIGILENT_ENC_MAX_H 1920
-#define DIGILENT_ENC_MAX_V 1080
-#define DIGILENT_ENC_PREF_H 1280
-#define DIGILENT_ENC_PREF_V 720
+#define DIGILENT_ENC_REFRESH_RATE		60
+#define DIGILENT_ENC_MAX_FREQ			150000		/* kHz */
+#define DIGILENT_ENC_MAX_H			1920
+#define DIGILENT_ENC_MAX_V			1080
+#define DIGILENT_ENC_PREF_H			1280
+#define DIGILENT_ENC_PREF_V			720
+#define PIXELS_PER_CLK				1
 
 
 struct digilent_encoder 
 {
-	struct drm_encoder encoder;
-	struct drm_connector connector;
-	struct device *dev;
-	struct i2c_adapter *i2c_bus;
-	bool i2c_present;
-	u32 fmax;
-    	u32 hmax;
-	u32 vmax;
-	u32 hpref;
-	u32 vpref;
+	struct drm_encoder	encoder;
+	struct drm_connector	connector;
+	struct drm_display_mode	video_mode;
+	struct device		*dev;
+	struct i2c_adapter	*i2c_bus;
+	bool			i2c_present;
+	struct clk		*pixel_clock;
+	u32			fmax;
+    	u32			hmax;
+	u32			vmax;
+	u32			hpref;
+	u32			vpref;
+	unsigned long		clk_baseaddr;
 };
 
 
@@ -138,6 +147,8 @@ static inline digilent_encoder_mode_valid_helper(struct drm_connector *connector
 	{	
 		return MODE_OK;
 	}
+	
+	dev_err(digilent->dev, "mode bad!!!!\r\n");
 
 	return MODE_BAD;
 }
@@ -166,8 +177,8 @@ static int digilent_encoder_get_modes_helper(struct drm_connector *connector)
         }
         else
         {
-                num_modes = drm_add_modes_noedid(connector, DIGILENT_ENC_MAX_H, DIGILENT_ENC_MAX_V);
-                drm_set_preferred_mode(connector, DIGILENT_ENC_PREF_H, DIGILENT_ENC_PREF_V);
+                num_modes = drm_add_modes_noedid(connector, digilent->hmax, digilent->vmax);
+                drm_set_preferred_mode(connector, digilent->hpref, digilent->vpref);
         }
         return num_modes;
 }
@@ -189,11 +200,88 @@ static struct drm_connector_helper_funcs digilent_encoder_connector_helper_funcs
 };
 
 
+static int digilent_encoder_dynclk_set(struct digilent_encoder *encoder, struct videomode *vm)
+{
+    int ret;
+
+    /* set pixel clock */
+    ret = clk_set_rate(encoder->pixel_clock, vm->pixelclock);
+    if (ret)
+    {
+        DRM_ERROR("failed to set a pixel clock\r\n");
+        return ret;
+    }
+
+    return 0;
+}
+
+
 static void digilent_encoder_atomic_mode_set(struct drm_encoder *encoder,
 					     struct drm_crtc_state *crtc_state,
 					     struct drm_connector_state *connector_state)
 {
+	struct digilent_encoder *digilent = encoder_to_digilent_encoder(encoder);
+	struct drm_display_mode *adjusted_mode = &crtc_state->adjusted_mode;
+	struct videomode vm;
 
+	u32 sditx_blank, vtc_blank;
+
+	vm.hactive = adjusted_mode->hdisplay / PIXELS_PER_CLK;
+	vm.hfront_porch = (adjusted_mode->hsync_start - adjusted_mode->hdisplay) / PIXELS_PER_CLK;
+	vm.hback_porch = (adjusted_mode->htotal - adjusted_mode->hsync_end) / PIXELS_PER_CLK;
+	vm.hsync_len = (adjusted_mode->hsync_end - adjusted_mode->hsync_start) / PIXELS_PER_CLK;
+	
+	vm.vactive = adjusted_mode->vdisplay;
+	vm.vfront_porch = adjusted_mode->vsync_start - adjusted_mode->vdisplay;
+	vm.vback_porch = adjusted_mode->vtotal - adjusted_mode->vsync_end;
+	vm.vsync_len = adjusted_mode->vsync_end - adjusted_mode->vsync_start;
+    	vm.flags = 0;
+
+	if (adjusted_mode->flags & DRM_MODE_FLAG_INTERLACE)
+	{
+        	vm.flags |= DISPLAY_FLAGS_INTERLACED;
+	}
+
+	if (adjusted_mode->flags & DRM_MODE_FLAG_PHSYNC)
+	{
+		vm.flags |= DISPLAY_FLAGS_HSYNC_LOW;
+	}
+	
+	if (adjusted_mode->flags & DRM_MODE_FLAG_PVSYNC)
+	{
+        	vm.flags |= DISPLAY_FLAGS_VSYNC_LOW;
+	}
+
+	do
+	{
+		sditx_blank = (adjusted_mode->hsync_start - adjusted_mode->hdisplay) +
+			      (adjusted_mode->hsync_end - adjusted_mode->hsync_start) +
+			      (adjusted_mode->htotal - adjusted_mode->hsync_end);
+
+		vtc_blank = (vm.hfront_porch + vm.hback_porch + vm.hsync_len) * PIXELS_PER_CLK;
+
+		if (vtc_blank != sditx_blank)
+		{
+			vm.hfront_porch++;
+		}
+	}
+	while (vtc_blank < sditx_blank);
+
+	vm.pixelclock = adjusted_mode->clock * 1000;
+
+//	printk("sdi->video_mode.clock:%d\n", sdi->video_mode.clock);
+//	printk("adjusted_mode->clock:%d\n", adjusted_mode->clock);
+
+//	sdi->video_mode.vdisplay = adjusted_mode->vdisplay;
+//	sdi->video_mode.hdisplay = adjusted_mode->hdisplay;
+//	sdi->video_mode.vrefresh = adjusted_mode->vrefresh;
+//	sdi->video_mode.flags = adjusted_mode->flags;
+
+	drm_mode_copy(&digilent->video_mode, adjusted_mode);
+	
+	digilent_encoder_dynclk_set(digilent, &vm);
+
+	printk(KERN_INFO "digilent_encoder amotic mode set completed\r\n");
 }
 
 
@@ -234,7 +322,7 @@ static int digilent_encoder_create_connector(struct drm_encoder *encoder)
 	rc = drm_connector_init(encoder->dev, connector, &digilent_encoder_connector_funcs, DRM_MODE_CONNECTOR_HDMIA);
 	if (rc)
 	{
-		dev_err(digilent->dev, "Failed to initialize connector with drm\n");
+		dev_err(digilent->dev, "Failed to initialize connector with drm\r\n");
 		return rc;
 	}
 
@@ -243,14 +331,14 @@ static int digilent_encoder_create_connector(struct drm_encoder *encoder)
 	rc = drm_connector_register(connector);
 	if (rc)
 	{
-        	dev_err(digilent->dev, "Failed to register the connector (rc=%d)\n", rc);
+        	dev_err(digilent->dev, "Failed to register the connector (ret = %d)\r\n", rc);
         	return rc;
 	}
 	
 	rc = drm_connector_attach_encoder(connector, encoder);
 	if (rc)
 	{
-		dev_err(digilent->dev, "Failed to attach encoder to connector (ret=%d)\n", rc);
+		dev_err(digilent->dev, "Failed to attach encoder to connector (ret = %d)\r\n", rc);
 		return rc;
 	}
 	
@@ -277,7 +365,7 @@ static int digilent_encoder_bind(struct device *dev, struct device *master, void
 	rc = digilent_encoder_create_connector(encoder);
 	if (rc)
 	{
-		dev_err(digilent->dev, "fail creating connect, rc = %d\n", rc);
+		dev_err(digilent->dev, "fail creating connect, rc = %d\r\n", rc);
 		drm_encoder_cleanup(encoder);
 	}
 	
@@ -305,6 +393,7 @@ static int digilent_encoder_probe(struct platform_device *pdev)
 {
 	struct digilent_encoder *digilent;
 	struct device_node *sub_node;
+	u32 clk_base_address;
 	int rc;
 
 	digilent = devm_kzalloc(&pdev->dev, sizeof(*digilent), GFP_KERNEL);
@@ -315,7 +404,34 @@ static int digilent_encoder_probe(struct platform_device *pdev)
 	
 	digilent->dev = &pdev->dev;
 	platform_set_drvdata(pdev, digilent);
+
+	rc = of_property_read_u32(pdev->dev.of_node, "digilent,clk-baseaddr", &clk_base_address);
+	if (rc)
+	{
+		dev_info(digilent->dev, "failed to get the clk base address\r\n");
+	}
+	else
+	{
+		digilent->clk_baseaddr = clk_base_address;
+		dev_info(digilent->dev, "clock base address %#08lx\r\n", digilent->clk_baseaddr);
+	}
+
+	digilent->pixel_clock = devm_clk_get(digilent->dev, "pixel-clk");
+	if (IS_ERR(digilent->pixel_clock))
+	{
+		if (PTR_ERR(digilent->pixel_clock) == -EPROBE_DEFER)
+		{
+			rc = PTR_ERR(digilent->pixel_clock);
+			dev_info(digilent->dev,"failed to get pixel clock\r\n");
+		}
+		else
+		{
+			dev_info(digilent->dev,"failed to get pixel clock\r\n");
+			digilent->pixel_clock = NULL;
+		}
+	}
 	
+	/* get i2c adapter for edid */
 	digilent->i2c_present = false;
 
 	sub_node = of_parse_phandle(pdev->dev.of_node, "digilent,edid-i2c", 0);
@@ -324,20 +440,58 @@ static int digilent_encoder_probe(struct platform_device *pdev)
 		digilent->i2c_bus = of_find_i2c_adapter_by_node(sub_node);
 		if (!digilent->i2c_bus)
 		{
-			dev_info(&pdev->dev, "failed to get the edid i2c adapter, using default modes\n");
+			dev_info(&pdev->dev, "failed to get the edid i2c adapter, using default modes\r\n");
 		}
 		else
 		{
-			digilent->i2c_present = false;
+			dev_info(&pdev->dev, "edid-i2c found\r\n");
+			digilent->i2c_present = true;
 		}
+		of_node_put(sub_node);
 	}
 
-	digilent->fmax = DIGILENT_ENC_MAX_FREQ;
-	digilent->hmax = DIGILENT_ENC_MAX_H;
-	digilent->vmax = DIGILENT_ENC_MAX_V;
-	digilent->hpref = DIGILENT_ENC_PREF_H;
-	digilent->vpref = DIGILENT_ENC_PREF_V;
+        rc = of_property_read_u32(pdev->dev.of_node, "digilent,fmax", &digilent->fmax);
+        if (rc < 0)
+	{
+                digilent->fmax = DIGILENT_ENC_MAX_FREQ;
+                dev_info(&pdev->dev, "No max frequency in DT, using default %dkHz\r\n", DIGILENT_ENC_MAX_FREQ);
+        }
+
+        rc = of_property_read_u32(pdev->dev.of_node, "digilent,hmax", &digilent->hmax);
+        if (rc < 0)
+	{
+                digilent->hmax = DIGILENT_ENC_MAX_H;
+                dev_info(&pdev->dev, "No max horizontal width in DT, using default %d\r\n", DIGILENT_ENC_MAX_H);
+        }
+
+        rc = of_property_read_u32(pdev->dev.of_node, "digilent,vmax", &digilent->vmax);
+        if (rc < 0)
+	{
+                digilent->vmax = DIGILENT_ENC_MAX_V;
+                dev_info(&pdev->dev, "No max vertical height in DT, using default %d\r\n", DIGILENT_ENC_MAX_V);
+        }
+
+        rc = of_property_read_u32(pdev->dev.of_node, "digilent,hpref", &digilent->hpref);
+        if (rc < 0)
+	{
+                digilent->hpref = DIGILENT_ENC_PREF_H;
+                if (!digilent->i2c_present)
+		{
+                        dev_info(&pdev->dev, "No pref horizontal width in DT, using default %d\r\n", DIGILENT_ENC_PREF_H);
+		}
+        }
+
+        rc = of_property_read_u32(pdev->dev.of_node, "digilent,vpref", &digilent->vpref);
+        if (rc < 0)
+	{
+                digilent->vpref = DIGILENT_ENC_PREF_V;
+                if (!digilent->i2c_present)
+		{
+                        dev_info(&pdev->dev, "No pref vertical height in DT, using default %d\n", DIGILENT_ENC_PREF_V);
+		}
+        }
 	
+	pdev->dev.platform_data = &digilent->video_mode;
 	dev_info(&pdev->dev, "set default display resolution to %dx%d, max frequency %d\r\n", digilent->hpref, digilent->vpref, digilent->fmax);
 
 	rc = component_add(digilent->dev, &digilent_encoder_component_ops);
@@ -377,18 +531,4 @@ static struct platform_driver digilent_encoder_driver =
 	.probe		= digilent_encoder_probe,
 	.remove		= digilent_encoder_remove,
 };
-
-static int __init digilent_encoder_init(void)
-{
-	return platform_driver_register(&digilent_encoder_driver);
-}
-
-
-static void __exit digilent_encoder_exit(void)
-{
-	platform_driver_unregister(&digilent_encoder_driver);
-	printk(KERN_INFO "digilent_encoder module exit.\r\n");
-}
-
-module_init(digilent_encoder_init);
-module_exit(digilent_encoder_exit);
+module_platform_driver(digilent_encoder_driver);

@@ -1,7 +1,8 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 
 SRC_URI += "file://boot.cmd.default.initrd \
-	file://boot.cmd.default"
+	file://boot.cmd.default \
+	file://boot.cmd.default.ubifs"
 
 BOOTMODE = "default"
 BOOTFILE_EXT = ".initrd"
@@ -11,6 +12,8 @@ SKIP_APPEND_BASEADDR = "0"
 RAMDISK_IMAGE_zynq = "rootfs.cpio.gz.u-boot"
 RAMDISK_IMAGE_zynqmp = "rootfs.cpio.gz.u-boot"
 RAMDISK_IMAGE_versal = "rootfs.cpio.gz.u-boot"
+
+RAMDISK_IMAGE1 = "ramdisk.cpio.gz.u-boot"
 
 KERNEL_IMAGE_zynq = "uImage"
 KERNEL_IMAGE_zynqmp = "Image"
@@ -83,6 +86,7 @@ FIT_IMAGE_LOAD_ADDRESS = "${@append_baseaddr(d,"0x10000000")}"
 
 QSPI_FIT_IMAGE_LOAD_ADDRESS = "${@append_baseaddr(d,"0x10000000")}"
 QSPI_FIT_IMAGE_SIZE = "0x6400000"
+QSPI_FIT_IMAGE_SIZE_k26 = "0x3F00000"
 QSPI_FIT_IMAGE_SIZE_zynqmpdr = "0x3F00000"
 QSPI_FIT_IMAGE_SIZE_zynq = "0xF00000"
 
@@ -140,5 +144,6 @@ do_compile_prepend() {
 	    -e 's/@@NAND_FIT_IMAGE_SIZE@@/${NAND_FIT_IMAGE_SIZE}/' \
 	    -e 's/@@FIT_IMAGE@@/${FIT_IMAGE}/' \
 	    -e 's/@@PRE_BOOTENV@@/${PRE_BOOTENV}/' \
+	    -e 's/@@RAMDISK_IMAGE1@@/${RAMDISK_IMAGE1}/' \
 	    "${WORKDIR}/boot.cmd.${BOOTMODE}${BOOTFILE_EXT}" > "${WORKDIR}/boot.cmd.${BOOTMODE}.${SOC_FAMILY}"
 }
