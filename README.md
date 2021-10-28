@@ -7,7 +7,7 @@
 
 ## Vivado Version: 2020.2
 
-## Requirements
+## Requirements:
 ------------
 * **Arty Z7-20**
 * **Vivado and Petalinux Installation**
