@@ -20,3 +20,7 @@ clean:
 	$(MAKE) -C hw clean
 	$(MAKE) -C sw/petalinux clean
 	@rm -rf *.str *.log *.jou .Xil
+
+.PHONY: install_board_files
+install_board_files: 
+	sudo cp -r hw/source/misc/board_files /opt/Xilinx/Vivado/$(VERSION)/data/boards
