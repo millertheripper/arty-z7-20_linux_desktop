@@ -19,6 +19,7 @@ fpga:
 clean:
 	$(MAKE) -C hw clean
 	$(MAKE) -C sw/petalinux clean
+	$(MAKE) -C sw/vitis clean
 	@rm -rf *.str *.log *.jou .Xil
 
 .PHONY: install_board_files
