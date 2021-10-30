@@ -1,4 +1,4 @@
-# Arty-Z7-20 HDMI Out
+# Arty-Z7-20
 * Petalinux Display with Desktop based on AXI framebuffer read
 
 ## Base HDMI Project derived from 
