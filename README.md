@@ -1,11 +1,11 @@
 # Arty-Z7-20 HDMI Out
-* Petalinux Display with Desktop based on AXI Framebuffer
+* Petalinux Display with Desktop based on AXI framebuffer read
 
 ## Base HDMI Project derived from 
 * https://github.com/DuyTrandeLion/PYNQ-Z1
 * Thanks to Duy for Supporting!!
 
-## Vivado Version: 2020.2
+## Xilinx Tools Version: 2020.2
 
 ## Requirements:
 ------------

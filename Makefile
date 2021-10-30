@@ -1,9 +1,14 @@
 include Makefile.inc
 
 .PHONY: all
-all: fpga petalinux
+all: fpga vitis petalinux
+
+.PHONY: vitis
+vitis:
+	$(MAKE) -C sw/vitis
 
 .PHONY: petalinux
+petalinux:
 	$(MAKE) -C sw/petalinux
 
 .PHONY: fpga

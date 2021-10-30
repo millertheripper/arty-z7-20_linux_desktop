@@ -1,0 +1,6 @@
+Packages/
+.Xil/
+build/
+ws/
+*.spec
+*.log
